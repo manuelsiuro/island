@@ -10,7 +10,9 @@ function getRandomInt (min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-
+/**
+Convert Array 1D to Array 2D
+*/
 function listToMatrix(list, elementsPerSubArray) {
     var matrix = [], i, k;
 
@@ -26,6 +28,9 @@ function listToMatrix(list, elementsPerSubArray) {
     return matrix;
 }
 
+function random_dist(max){
+	return 4 + (Math.random()*max)<<0;
+};
 
 // Setup the map array for use
 function create2DArray(d1, d2) {

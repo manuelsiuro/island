@@ -2,9 +2,7 @@ var _MAP_PIXEL_DIMENSION = 128,
 	_PIXEL_UNIT_SIZE = 1, // Power of 2
 	_MAP_ROUGHNESS = 8,
 	_MAP,
-	tiledmap,
-	generate = $('#generate'),
-	btnSaveMap = document.getElementById('savemap'),
+	_TILES_MAP,
 	viewportCanvas = document.getElementById('viewport'),
 	viewportCtx = viewportCanvas.getContext("2d"),
 	bufferMapCanvas = document.createElement('canvas'),
@@ -88,7 +86,7 @@ function init(){
 	
 	$("#output").on('click', '.plus-population', function(e){
 		var idx = $("#tile-index").html();
-		tiledmap[idx].population++;
+		_TILES_MAP[idx].population++;
 	});*/
 	
 	viewportCanvas.width = _SCREEN_WIDTH;
@@ -110,6 +108,19 @@ function init(){
 	
 	// On genere le terrain sur le onload de l'image
 	sprites_img.src = "img/sprites.png";	
+}
+
+function terrainGeneration(){
+	generateMap();
+}
+
+function generateMap(){
+
+	_MAP 		= generateTerrainMap(_MAP_PIXEL_DIMENSION, _PIXEL_UNIT_SIZE, _MAP_ROUGHNESS);
+	_TILES_MAP 	= convertToTiledMap(_MAP);
+
+	setRandomStartPoint();
+	gameLoop();
 }
 
 function gameLoop() {
@@ -144,7 +155,7 @@ function update(){
 	
 	// Update viewport data
 	viewportMap = getViewportMap(currentPlayerIndex),
-	updateViewPortCollision(),
+	updateViewPortCollisionMap(),
 	updateViewPortFOV((viewportOffsetRowsCols*0.5), (viewportOffsetRowsCols*0.5)),
 	updateViewPortMoves((viewportOffsetRowsCols*0.5), (viewportOffsetRowsCols*0.5));
 	
@@ -159,19 +170,60 @@ function redraw(){
 	
 	drawViewPortMap(),
 	drawViewportPlayer();
+}
+
+function drawViewPortMap(){
 	
+	viewportCtx.clearRect(0, 0, viewportCanvas.height, viewportCanvas.width);
+
+	viewportCtx.drawImage(bufferMapCanvas, 0, 0);
+	
+	if(bFovEnable)
+		viewportCtx.drawImage(bufferFovCanvas, 0, 0);
+		
+	if(bMvtEnable)
+		viewportCtx.drawImage(bufferMovesCanvas, 0, 0);
+	
+	if(bUiEnable)	
+		viewportCtx.drawImage(panelCanvas, 0, 0);	
+	
+		
+	// Collision and Astar
+	/*if(viewportCollisionMap != null && currentPath.length > 0 && frame == 0){
+		
+		var rp = 0;
+		var index = parseInt(currentPath[rp][1])+(parseInt(currentPath[rp][0])*parseInt(viewportRowsCols));
+		
+			currentPlayerIndex = viewportMap[index].index;
+	}*/
+	
+	/*if(viewportCollisionMap != null && currentPath.length > 0 && frame == 1){
+		
+		var rp = 0;
+		pathStart 	= [currentPath[rp][0],currentPath[rp][1]];
+		pathEnd 	= [currentPath[currentPath.length-1][0],currentPath[currentPath.length-1][1]];
+		
+		console.info("");
+		console.log(pathStart);
+		console.log(pathEnd);
+		
+		currentPath = [];
+		currentPath = findPath(getViewPortCollisionWorld(),pathStart,pathEnd);
+		currentPath.shift();
+
+		console.log(currentPath);
+		console.info("");
+	}*/
 }
 
 function drawBufferPanel(){
 
-	//var index = viewportOffsetRowsCols*0.5+((viewportOffsetRowsCols*0.5)*viewportRowsCols);
-	var _X = viewportOffsetRowsCols*0.5;
-	var _Y = viewportOffsetRowsCols*0.5;
-
-	var lineHeight = 15,
+	var _X = viewportOffsetRowsCols*0.5,
+		_Y = viewportOffsetRowsCols*0.5,
+		lineHeight 		= 15,
 		labelMarginLeft = 15,
-		dataMarginLeft = 120,
-		startline = 350;
+		dataMarginLeft 	= 120,
+		startline 		= 350;
 	
 	panelContext.clearRect(0, 0, panelCanvas.height, panelCanvas.width);
 	panelContext.drawImage(sprites[_TILE_PANEL], 0, 320, 320, 160);
@@ -246,13 +298,6 @@ function drawBufferFOV(){
 
 function drawBufferCanvasMap(){
 	
-	/*var nx = 0,
-		ny = 0;*/
-	
-	//console.log(viewportMap.length);
-	//console.dir(viewportMap);
-	
-	
 	for(var x = 0; x < viewportMap.length; x++){
 		for(var y = 0; y < viewportMap[x].length; y++){
 			
@@ -270,64 +315,8 @@ function drawBufferCanvasMap(){
 			bufferMapContext.drawImage(sprites[viewportMap[x][y].type], (x*zoom), (y*zoom), zoom, zoom);
 		
 		}
-
-		/*if( viewportMap[i].type == _TILE_WATER 
-			|| viewportMap[i].type == _TILE_SAND 
-			|| viewportMap[i].type == _TILE_GRASS ) {
-
-			bufferMapContext.drawImage(sprites[viewportMap[i].type+7], nx*zoom, ny*zoom, zoom, zoom);
-		} else {
-			bufferMapContext.drawImage(sprites[9], nx*zoom, ny*zoom, zoom, zoom);
-		}
-		bufferMapContext.drawImage(sprites[viewportMap[i].type], (nx*zoom), (ny*zoom), zoom, zoom);
-
-		if(ny==viewportOffsetRowsCols){
-			ny=0;
-			nx++;
-		} else {
-			ny++;
-		}*/
 	}
-	
 }
-
-
-
-function terrainGeneration(){
-	generateMap();
-}
-//http://nethackwiki.com/wiki/Monster#Canonical_list_of_monsters
-function generateMap(){
-
-        _MAP 			= generateTerrainMap(_MAP_PIXEL_DIMENSION, _PIXEL_UNIT_SIZE, _MAP_ROUGHNESS);
-		tiledmap 		= convertToTiledMap(_MAP);
-		//tiledmap		= updateTileMap(tiledmap);
-
-		setRandomStartPoint();
-		gameLoop();
-}
-
-/*function updateTileMap(mapTileData){
-
-	var x = 0,
-		y = 0,
-		dim = _MAP_PIXEL_DIMENSION/_PIXEL_UNIT_SIZE;
-	
-	for(var i = 0; i < mapTileData.length; i++){
-
-		mapTileData[i].index = i;
-		mapTileData[i].x = x;
-		mapTileData[i].y = y;
-		
-		x++;
-		if(x==dim){
-			x=0;
-			y++;
-		}
-	}
-	
-	return mapTileData;
-}*/
 
 function getTileName(i){
 	
@@ -352,34 +341,19 @@ function getTileName(i){
 	
 function convertToTiledMap(mapData){
 	
-	
-	
-	var nwe = parseFloat(10)/100,
-		nse = nwe + parseFloat(10)/100,
-		nge = nse + parseFloat(50)/100,
-		nme = nge + parseFloat(10)/100,
-		nre = nme + parseFloat(10)/100,
-		noe = nre + parseFloat(10)/100,
-		tiles = new Array(),
-		x = 0,
-		y = 0;
-	
-	var d = _MAP_PIXEL_DIMENSION;
-	var tiles = create2DArray(d, d);
-	
-	
-	rangeWaterStart 	= 0,
-	rangeWaterEnd 		= nwe,
-	rangeSandStart 		= rangeWaterEnd,
-	rangeSandEnd 		= nse,
-	rangeGrassStart 	= rangeSandEnd,
-	rangeGrassEnd 		= nge,
-	rangeMountainStart 	= rangeGrassEnd,
-	rangeMountainEnd 	= nme,
-	rangeRockStart 		= rangeMountainEnd,
-	rangeRockEnd 		= nre,
-	rangeSnowStart 		= rangeRockEnd,
-	rangeSnowEnd 		= noe;
+	var tiles 				= create2DArray(_MAP_PIXEL_DIMENSION, _MAP_PIXEL_DIMENSION),
+		rangeWaterStart 	= 0,
+		rangeWaterEnd 		= 0.1,
+		rangeSandStart 		= rangeWaterEnd,
+		rangeSandEnd 		= 0.2,
+		rangeGrassStart 	= rangeSandEnd,
+		rangeGrassEnd 		= 0.7,
+		rangeMountainStart 	= rangeGrassEnd,
+		rangeMountainEnd 	= 0.8,
+		rangeRockStart 		= rangeMountainEnd,
+		rangeRockEnd 		= 0.9,
+		rangeSnowStart 		= rangeRockEnd,
+		rangeSnowEnd 		= 1.0;
 	
 	for(x = 0; x < _MAP_PIXEL_DIMENSION; x++){
 		for(y = 0; y < _MAP_PIXEL_DIMENSION; y++){
@@ -393,66 +367,40 @@ function convertToTiledMap(mapData){
 					tempTile.y = y;
 				
 				if (data >= rangeWaterStart && data <= rangeWaterEnd) {
-				
-					//tiles.push(new Tile(_TILE_WATER));
 					tempTile.type = _TILE_WATER;
-					
-					
 				} else if (data > rangeSandStart && data <= rangeSandEnd) {
-					
-					//tiles.push(new Tile(_TILE_SAND));
-					//tiles[_X][_Y] = new Tile(_TILE_SAND);
 					tempTile.type = _TILE_SAND;
-					
 				} else if (data > rangeGrassStart && data <= rangeGrassEnd) {
-					
-					//tiles.push(new Tile(_TILE_GRASS));
-					//tiles[_X][_Y] = new Tile(_TILE_GRASS);
 					tempTile.type = _TILE_GRASS;
-					
 				} else if (data > rangeMountainStart && data <= rangeMountainEnd) {
-					
-					//tiles.push(new Tile(_TILE_GRASS_MEDIUM));
-					//tiles[_X][_Y] = new Tile(_TILE_GRASS_MEDIUM);
 					tempTile.type = _TILE_GRASS_MEDIUM;
-					
 				} else if (data > rangeRockStart && data <= rangeRockEnd) {
-					
-					//tiles.push(new Tile(_TILE_GRASS_HARD));
-					//tiles[_X][_Y] = new Tile(_TILE_GRASS_HARD);
 					tempTile.type = _TILE_GRASS_HARD;
-					
 				} else if (data > rangeSnowStart) {
-					
-					//tiles.push(new Tile(_TILE_TREE));
-					//tiles[_X][_Y] = new Tile(_TILE_TREE);
 					tempTile.type = _TILE_TREE;
 				}
 				
 				tiles[x][y] = tempTile;
 				
 			} catch (err){
-				$("#output").append(err.message+'<br>');
+				console.log(err.message);
 			}
 		}
 	}
-	
-	console.log(tiles.length);
 	
 	return tiles;
 }
 
 function setRandomStartPoint(){
-	var l = (tiledmap.length)-1;
+	var l = (_TILES_MAP.length)-1;
 	currentPlayerIndex = getRandomInt(0, l*l);
-	console.log("setRandomStartPoint currentPlayerIndex:"+currentPlayerIndex);
 }
 
 function drawViewportPlayer(x,y,alpha){
 
-	var _x = x*zoom || (viewportOffsetRowsCols*0.5)*zoom;
-	var _y = y*zoom || (viewportOffsetRowsCols*0.5)*zoom;
-	var _alpha = alpha || 1.0;
+	var _x = x*zoom || (viewportOffsetRowsCols*0.5)*zoom,
+		_y = y*zoom || (viewportOffsetRowsCols*0.5)*zoom,
+		_alpha = alpha || 1.0;
 	
 	viewportCtx.save();
     viewportCtx.globalAlpha = _alpha;
@@ -462,16 +410,13 @@ function drawViewportPlayer(x,y,alpha){
 		viewportCtx.drawImage(sprites[_TILE_SELECTED], _x, _y, zoom, zoom);
 		
     viewportCtx.restore();
-	
 }
 
 function getCoordsFromIndex(index){
 	
-	var _X = index%tiledmap.length;
-	var _Y = Math.round(index/tiledmap.length);
-	
-	console.log('getCoordsFromIndex:'+_X+','+_Y);
-	
+	var _X = index%_TILES_MAP.length,
+		_Y = Math.round(index/_TILES_MAP.length);
+
 	return {x:_X, y:_Y};
 }
 
@@ -480,113 +425,34 @@ function getViewportMap(index){
 	var pos = getCoordsFromIndex(index),
 		offset = viewportOffsetRowsCols*0.5,
 		dim = parseInt(_MAP_PIXEL_DIMENSION),
-			ltx = parseInt(pos.x)-parseInt(offset),
-			lty = parseInt(pos.y)-parseInt(offset),
-			rtx = parseInt(pos.x)+parseInt(offset),
-		/*rty = parseInt(lty),
-		lbx = parseInt(ltx),*/
-			lby = parseInt(pos.y)+parseInt(offset),
-		/*rbx = parseInt(rtx),
-		rby = parseInt(lby),*/
+		ltx = parseInt(pos.x)-parseInt(offset),
+		lty = parseInt(pos.y)-parseInt(offset),
+		rtx = parseInt(pos.x)+parseInt(offset),
+		lby = parseInt(pos.y)+parseInt(offset),
 		aView = create2DArray(viewportRowsCols, viewportRowsCols),
 		_X = 0,
 		_Y = 0;
 		
-	/*console.log("pos.x:"+pos.x);
-	console.log("pos.y:"+pos.y);
-	
-	console.log("ltx:"+ltx);
-	console.log("rtx:"+rtx);
-	
-	console.log("lty:"+lty);
-	console.log("lby:"+lby);*/
-	
-	
 	for(var x = ltx; x <= rtx; x++){
-		
 		_Y = 0;
-		
 		for(var y = lty; y <= lby; y++){
-			
-			
-			
-			if( x > -1 
-				&& x < dim 
-				&& y > -1 
-				&& y < dim){
-					
-					aView[_X][_Y] = tiledmap[x][y];
-				
-				
+			if( x > -1 && x < dim && y > -1 && y < dim){
+				aView[_X][_Y] = _TILES_MAP[x][y];
 			} else {
-				
 				var tempTile = new Tile(_TILE_EMPTY);
 					tempTile.index = (y*_MAP_PIXEL_DIMENSION)+x;
 					tempTile.x = x;
 					tempTile.y = y;
 				
 				aView[_X][_Y] = tempTile;
-				
 			}
 			_Y++;
 		}
 		_X++;
 	}
 	
-	//console.log(aView.length);
-	
 	return aView;
 }
-
-function random_dist(max){
-	return 4 + (Math.random()*max)<<0;
-};
-
-function drawViewPortMap(){
-	
-	viewportCtx.clearRect(0, 0, viewportCanvas.height, viewportCanvas.width);
-
-	viewportCtx.drawImage(bufferMapCanvas, 0, 0);
-	
-	if(bFovEnable)
-		viewportCtx.drawImage(bufferFovCanvas, 0, 0);
-		
-	if(bMvtEnable)
-		viewportCtx.drawImage(bufferMovesCanvas, 0, 0);
-	
-	if(bUiEnable)	
-		viewportCtx.drawImage(panelCanvas, 0, 0);	
-	
-		
-	// Collision and Astar
-	/*if(viewportCollisionMap != null && currentPath.length > 0 && frame == 0){
-		
-		var rp = 0;
-		var index = parseInt(currentPath[rp][1])+(parseInt(currentPath[rp][0])*parseInt(viewportRowsCols));
-		
-			currentPlayerIndex = viewportMap[index].index;
-	}*/
-	
-	/*if(viewportCollisionMap != null && currentPath.length > 0 && frame == 1){
-		
-		var rp = 0;
-		pathStart 	= [currentPath[rp][0],currentPath[rp][1]];
-		pathEnd 	= [currentPath[currentPath.length-1][0],currentPath[currentPath.length-1][1]];
-		
-		console.info("");
-		console.log(pathStart);
-		console.log(pathEnd);
-		
-		currentPath = [];
-		currentPath = findPath(getViewPortCollisionWorld(),pathStart,pathEnd);
-		currentPath.shift();
-
-		console.log(currentPath);
-		console.info("");
-	}*/
-	
-	
-}	
 	
 /**
 * makeSprite
@@ -630,12 +496,10 @@ function makePanel(x,y,w,h){
 	m_context.drawImage(sprites_img, -x*viewportTileSize, -y*viewportTileSize);
 	
 	return m_canvas;
-	
 }
 
-function updateViewPortCollision(){
+function updateViewPortCollisionMap(){
 	
-	//viewportCollisionMap = listToMatrix(viewportMap, viewportRowsCols);
 	viewportCollisionMap = create2DArray(viewportRowsCols, viewportRowsCols);
 	
 	// On met a plat avec que des '0' et '1' pour la collision
@@ -648,12 +512,11 @@ function updateViewPortCollision(){
 			} else {
 				viewportCollisionMap[i][j] = 0;
 			}
-			
 		}
 	}
 }
 
-function getViewPortCollisionWorld(){
+function getViewPortCollisionMap(){
 	return 	viewportCollisionMap;
 }
 
@@ -662,9 +525,8 @@ function updateViewPortFOV(x,y){
 	var plx = x,
 		ply = y;
 		
-	//viewportFovMap = listToMatrix(viewportMap, viewportRowsCols);
 	viewportFovMap = create2DArray(viewportRowsCols, viewportRowsCols);
-		
+
 	for(var i=0; i < viewportRowsCols; i++){
 		for(var j = 0; j < viewportRowsCols; j++){
 			if( viewportMap[i][j].type == _TILE_EMPTY ){
@@ -672,22 +534,23 @@ function updateViewPortFOV(x,y){
 			} else {
 				viewportFovMap[i][j] = 0;
 			}
-			
 		}
 	}
+	
 	viewportFovMap[plx][ply] = 2;
 	
 	updateBufferViewObject(viewportFovMap, plx, ply, _FOV);
 }
 
+function getViewPortFovMap(){
+	return 	viewportFovMap;
+}
 
-//viewportMovesMap
 function updateViewPortMoves(x,y){
 
 	var plx = x,
 		ply = y;
 		
-	//viewportMovesMap = listToMatrix(viewportMap, viewportRowsCols);
 	viewportMovesMap = create2DArray(viewportRowsCols, viewportRowsCols);
 		
 	for(var i=0; i < viewportRowsCols; i++){
@@ -699,18 +562,17 @@ function updateViewPortMoves(x,y){
 			} else {
 				viewportMovesMap[i][j] = 0;
 			}
-			
 		}
 	}
+	
 	viewportMovesMap[plx][ply] = 2;
 	
 	updateBufferViewObject(viewportMovesMap, plx, ply, _MVT);
 }
 
-function getViewPortFovMap(){
-	return 	viewportFovMap;
+function getViewPortMovesMap(){
+	return 	viewportMovesMap;
 }
-
 
 function updateBufferViewObject(map, x, y, r){
 	

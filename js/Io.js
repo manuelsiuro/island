@@ -113,7 +113,7 @@ function handleClick(x, y) {
 	/*console.log("x:" + x + " y:" + y);
 	console.log("_GRID_X:" + _GRID_X + " _GRID_X:" + _GRID_Y);
 	console.log("currentPlayerIndex:" + currentPlayerIndex);
-	console.log("tiledmap index:" + viewportMap[_GRID_X][_GRID_Y].index);
+	console.log("_TILES_MAP index:" + viewportMap[_GRID_X][_GRID_Y].index);
 	console.info("---");*/
 	
 	try {
