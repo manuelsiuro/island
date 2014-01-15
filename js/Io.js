@@ -22,14 +22,13 @@ function onUpCallback(event){
 	
 	//console.log("KEY_UP : " + event.keyCode);
 	
-	var dim = _MAP_PIXEL_DIMENSION+1;
 	var maxIndex = _MAP_PIXEL_DIMENSION*_MAP_PIXEL_DIMENSION;
 	var save = currentPlayerIndex;
 	var nIndex = 0;
 	
 	if( event.keyCode == 38 ){
 		// UP
-		nIndex = currentPlayerIndex - dim;
+		nIndex = currentPlayerIndex - _MAP_PIXEL_DIMENSION;
 		if(nIndex>=0)
 			currentPlayerIndex = nIndex;
 			
@@ -45,7 +44,7 @@ function onUpCallback(event){
 
 	} else if( event.keyCode == 40 ){
 		// DOWN
-		nIndex = parseInt(currentPlayerIndex) + parseInt(dim);
+		nIndex = currentPlayerIndex + _MAP_PIXEL_DIMENSION;
 		if(nIndex <= maxIndex)
 			currentPlayerIndex = nIndex;
 			
@@ -128,6 +127,8 @@ function handleClick(x, y) {
 		//astarFadeStep = currentPath.length;
 		console.log(currentPath);
 		*/
+		
+		
 		
 		// Test if center of grid, if true it's current selected player
 		if ( _GRID_X == viewportOffsetRowsCols*0.5 && _GRID_Y == viewportOffsetRowsCols*0.5){
