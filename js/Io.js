@@ -94,11 +94,11 @@ function handleClick(x, y) {
 	var offsetA = viewportTileSize;
 	var offsetB = zoom;
 	
-	gridX = Math.round((x-offsetA)/offsetB);
-    gridY = Math.round((y-offsetA)/offsetB);
+	_GRID_X = Math.round((x-offsetA)/offsetB);
+    _GRID_Y = Math.round((y-offsetA)/offsetB);
 	//var dim = 9;
-	var index = parseInt(gridY)+(parseInt(gridX)*parseInt(viewportRowsCols));
-	//var index = parseInt(gridX)+(parseInt(gridY)*parseInt(dim));
+	var index = parseInt(_GRID_Y)+(parseInt(_GRID_X)*parseInt(viewportRowsCols));
+	//var index = parseInt(_GRID_X)+(parseInt(_GRID_Y)*parseInt(dim));
 	
 	
 	
@@ -106,14 +106,14 @@ function handleClick(x, y) {
 	//html += "<p>viewportRowsCols:" + viewportRowsCols + "</p>";
 	
 	html += "<p>xy:" + x + " " + y + "</p>";
-	html += "<p>grid:" + gridX + " " + gridY + "</p>";
+	html += "<p>grid:" + _GRID_X + " " + _GRID_Y + "</p>";
 	html += "<p>local index:" + index + "</p>";
 	
 	try {
 
 		/*
 		pathStart 	= [viewportOffsetRowsCols*0.5,viewportOffsetRowsCols*0.5];
-		pathEnd 	= [gridX,gridY];
+		pathEnd 	= [_GRID_X,_GRID_Y];
 		currentPath = [];
 		
 		
@@ -125,11 +125,11 @@ function handleClick(x, y) {
 		//astarFadeStep = currentPath.length;
 		console.log(currentPath);
 		*/
-		//setFovCollisionWorld(world, gridX, gridY);
+		//setFovCollisionWorld(world, _GRID_X, _GRID_Y);
 		
 		
 		// Test if center of grid, if true it's current selected player
-		if ( gridX == viewportOffsetRowsCols*0.5 && gridY == viewportOffsetRowsCols*0.5){
+		if ( _GRID_X == viewportOffsetRowsCols*0.5 && _GRID_Y == viewportOffsetRowsCols*0.5){
 			
 			bPlayerSelected = !bPlayerSelected;
 			bMvtEnable = !bMvtEnable;
@@ -139,7 +139,7 @@ function handleClick(x, y) {
 		
 		if( viewportMap[index].type != _TILE_TREE 
 			&& viewportMap[index].type != _TILE_WATER
-			&& viewportMovesMap[gridX][gridY] == 2
+			&& viewportMovesMap[_GRID_X][_GRID_Y] == 2
 			&& bMvtEnable ){
 			
 				currentPlayerIndex = viewportMap[index].index;
@@ -153,7 +153,7 @@ function handleClick(x, y) {
 		}
 		
 		// On est dans le panel
-		if(gridY >= viewportRowsCols ){
+		if(_GRID_Y >= viewportRowsCols ){
 			bUpdate = true;
 		}
 		

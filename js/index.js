@@ -23,18 +23,6 @@ var _MAP_PIXEL_DIMENSION = 512,
 	viewportCollisionMap = null,
 	viewportFovMap = null,
 	viewportMovesMap = null,
-	waterStart={r:39,g:50,b:63},
-	waterEnd={r:10,g:20,b:40},
-	sandStart={r:98,g:105,b:83},
-	sandEnd={r:189,g:189,b:144},
-	grassStart={r:67,g:100,b:18},
-	grassEnd={r:22,g:38,b:3},
-	mtnEnd={r:67,g:80,b:18},
-	mtnStart={r:60,g:56,b:31},
-	rockStart={r:130,g:130,b:130},
-	rockEnd={r:90,g:90,b:90},
-	snowStart={r:238,g:238,b:238},
-	snowEnd={r:255,g:255,b:255},
 	_TILE_WATER = 0,
 	_TILE_SAND = 1,
 	_TILE_GRASS = 2,
@@ -74,8 +62,8 @@ var _MAP_PIXEL_DIMENSION = 512,
 	isIphone = navigator.userAgent.match(/iPhone/i) != null,
 	isAndroid = navigator.userAgent.match(/Android/i) != null,
 	useTouch = isIpad | isIphone | isAndroid,
-	screen_width = (useTouch) ? screen.width : $(window).width(),
-	screen_height = (useTouch) ? screen.height : $(window).height(),
+	_SCREEN_WIDTH = (useTouch) ? screen.width : $(window).width(),
+	_SCREEN_HEIGHT = (useTouch) ? screen.height : $(window).height(),
 	currentPlayerIndex = 0,
 	_FOV = 4,
 	_MVT = 2,
@@ -84,8 +72,8 @@ var _MAP_PIXEL_DIMENSION = 512,
 	currentPath = [],
 	sprites = [],
 	sprites_img = document.createElement("img"),
-	gridX = viewportOffsetRowsCols*0.5,
-	gridY = viewportOffsetRowsCols*0.5;
+	_GRID_X = viewportOffsetRowsCols*0.5,
+	_GRID_Y = viewportOffsetRowsCols*0.5;
 							  
 /* ------------------------------------------------------------------------------------------------------------------------------------------- */
 /* ------------------------------------------------------------------------------------------------------------------------------------------- */
@@ -103,20 +91,20 @@ function init(){
 		tiledmap[idx].population++;
 	});*/
 	
-	viewportCanvas.width = screen_width;
-	viewportCanvas.height = screen_height;
+	viewportCanvas.width = _SCREEN_WIDTH;
+	viewportCanvas.height = _SCREEN_HEIGHT;
 	
-	bufferMapCanvas.width = screen_width;
-	bufferMapCanvas.height = screen_height;
+	bufferMapCanvas.width = _SCREEN_WIDTH;
+	bufferMapCanvas.height = _SCREEN_HEIGHT;
 	
-	bufferFovCanvas.width = screen_width;
-	bufferFovCanvas.height = screen_height;
+	bufferFovCanvas.width = _SCREEN_WIDTH;
+	bufferFovCanvas.height = _SCREEN_HEIGHT;
 	
-	bufferMovesCanvas.width = screen_width;
-	bufferMovesCanvas.height = screen_height;
+	bufferMovesCanvas.width = _SCREEN_WIDTH;
+	bufferMovesCanvas.height = _SCREEN_HEIGHT;
 	
-	panelCanvas.width = screen_width;
-	panelCanvas.height = screen_height;
+	panelCanvas.width = _SCREEN_WIDTH;
+	panelCanvas.height = _SCREEN_HEIGHT;
 		
 	window.scrollTo( 0, 1 );
 	
@@ -220,7 +208,7 @@ function drawBufferPanel(){
 	startline += lineHeight;
 	
 	panelContext.fillText("Grid", labelMarginLeft, startline);
-	panelContext.fillText(gridX + ',' + gridY, dataMarginLeft, startline);
+	panelContext.fillText(_GRID_X + ',' + _GRID_Y, dataMarginLeft, startline);
 	startline += lineHeight;
 }
 
