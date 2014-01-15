@@ -429,7 +429,6 @@ function getViewportMap(index){
 
 	var pos = getCoordsFromIndex(index),
 		offset = viewportOffsetRowsCols*0.5,
-		dim = parseInt(_MAP_PIXEL_DIMENSION),
 		ltx = parseInt(pos.x)-parseInt(offset),
 		lty = parseInt(pos.y)-parseInt(offset),
 		rtx = parseInt(pos.x)+parseInt(offset),
@@ -441,7 +440,7 @@ function getViewportMap(index){
 	for(var x = ltx; x <= rtx; x++){
 		_Y = 0;
 		for(var y = lty; y <= lby; y++){
-			if( x > -1 && x < dim && y > -1 && y < dim){
+			if( x > -1 && x < _MAP_PIXEL_DIMENSION && y > -1 && y < _MAP_PIXEL_DIMENSION){
 				aView[_X][_Y] = _TILES_MAP[x][y];
 			} else {
 				var tempTile = new Tile(_TILE_EMPTY);
@@ -593,6 +592,7 @@ function updateBufferViewObject(map, x, y, r){
 	checkWSquad( map, x, y, r, 1.0, 0.0, 1);
 	checkWNquad( map, x, y, r, 1.0, 0.0, 1);
 }
+
 
 /* ------------------------------------------------------------------------------------------------------------------------------------------- */
 /* ------------------------------------------------------------------------------------------------------------------------------------------- */
