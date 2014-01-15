@@ -1,5 +1,5 @@
-var _MAP_PIXEL_DIMENSION = 512,
-	_PIXEL_UNIT_SIZE = 4, // Power of 2
+var _MAP_PIXEL_DIMENSION = 128,
+	_PIXEL_UNIT_SIZE = 1, // Power of 2
 	_MAP_ROUGHNESS = 8,
 	_MAP,
 	tiledmap,
@@ -131,7 +131,7 @@ function gameLoop() {
 		
 		frame++;
 		
-		if (frame >= 2) frame = 0; 
+		if (frame >= fps) frame = 0; 
 	
 	} else { 
 		acDelta += delta; 
@@ -145,9 +145,8 @@ function update(){
 	// Update viewport data
 	viewportMap = getViewportMap(currentPlayerIndex),
 	updateViewPortCollision(),
-	updateViewPortFOV((viewportOffsetRowsCols*0.5), (viewportOffsetRowsCols*0.5));
+	updateViewPortFOV((viewportOffsetRowsCols*0.5), (viewportOffsetRowsCols*0.5)),
 	updateViewPortMoves((viewportOffsetRowsCols*0.5), (viewportOffsetRowsCols*0.5));
-	
 	
 	// Draw on buffer canvas
 	drawBufferCanvasMap(),
@@ -165,7 +164,9 @@ function redraw(){
 
 function drawBufferPanel(){
 
-	var index = viewportOffsetRowsCols*0.5+((viewportOffsetRowsCols*0.5)*viewportRowsCols);
+	//var index = viewportOffsetRowsCols*0.5+((viewportOffsetRowsCols*0.5)*viewportRowsCols);
+	var _X = viewportOffsetRowsCols*0.5;
+	var _Y = viewportOffsetRowsCols*0.5;
 
 	var lineHeight = 15,
 		labelMarginLeft = 15,
@@ -178,33 +179,32 @@ function drawBufferPanel(){
 	panelContext.font = '14px silkscreennormal, cursive';
 	panelContext.fillStyle = 'black';
 	
-	
 	panelContext.fillText("TILEMAP", labelMarginLeft, startline);
-	panelContext.fillText(getTileName(viewportMap[index].type), dataMarginLeft, startline);
+	panelContext.fillText(getTileName(viewportMap[_X][_Y].type), dataMarginLeft, startline);
 	startline += lineHeight;
 	
 	panelContext.fillText("Population", labelMarginLeft, startline);
-	panelContext.fillText(viewportMap[index].population, dataMarginLeft, startline);
+	panelContext.fillText(viewportMap[_X][_Y].population, dataMarginLeft, startline);
 	startline += lineHeight;
 	
 	panelContext.fillText("Wood", labelMarginLeft, startline);
-	panelContext.fillText(viewportMap[index].wood, dataMarginLeft, startline);
+	panelContext.fillText(viewportMap[_X][_Y].wood, dataMarginLeft, startline);
 	startline += lineHeight;
 	
 	panelContext.fillText("Rock", labelMarginLeft, startline);
-	panelContext.fillText(viewportMap[index].rock, dataMarginLeft, startline);
+	panelContext.fillText(viewportMap[_X][_Y].rock, dataMarginLeft, startline);
 	startline += lineHeight;
 	
 	panelContext.fillText("Cuivre", labelMarginLeft, startline);
-	panelContext.fillText(viewportMap[index].cuivre, dataMarginLeft, startline);
+	panelContext.fillText(viewportMap[_X][_Y].cuivre, dataMarginLeft, startline);
 	startline += lineHeight;
 	
 	panelContext.fillText("Fer", labelMarginLeft, startline);
-	panelContext.fillText(viewportMap[index].fer, dataMarginLeft, startline);
+	panelContext.fillText(viewportMap[_X][_Y].fer, dataMarginLeft, startline);
 	startline += lineHeight;
 	
 	panelContext.fillText("Or", labelMarginLeft, startline);
-	panelContext.fillText(viewportMap[index].or, dataMarginLeft, startline);
+	panelContext.fillText(viewportMap[_X][_Y].or, dataMarginLeft, startline);
 	startline += lineHeight;
 	
 	panelContext.fillText("Grid", labelMarginLeft, startline);
@@ -246,12 +246,32 @@ function drawBufferFOV(){
 
 function drawBufferCanvasMap(){
 	
-	var nx = 0,
-		ny = 0;
+	/*var nx = 0,
+		ny = 0;*/
 	
-	for(var i = 0; i < viewportMap.length; i++){
+	//console.log(viewportMap.length);
+	//console.dir(viewportMap);
+	
+	
+	for(var x = 0; x < viewportMap.length; x++){
+		for(var y = 0; y < viewportMap[x].length; y++){
+			
+			if( viewportMap[x][y].type == _TILE_WATER 
+				|| viewportMap[x][y].type == _TILE_SAND 
+				|| viewportMap[x][y].type == _TILE_GRASS ) {
 
-		if( viewportMap[i].type == _TILE_WATER 
+				bufferMapContext.drawImage(sprites[viewportMap[x][y].type+7], x*zoom, y*zoom, zoom, zoom);
+				
+			} else {
+			
+				bufferMapContext.drawImage(sprites[9], x*zoom, y*zoom, zoom, zoom);
+			}
+		
+			bufferMapContext.drawImage(sprites[viewportMap[x][y].type], (x*zoom), (y*zoom), zoom, zoom);
+		
+		}
+
+		/*if( viewportMap[i].type == _TILE_WATER 
 			|| viewportMap[i].type == _TILE_SAND 
 			|| viewportMap[i].type == _TILE_GRASS ) {
 
@@ -266,7 +286,7 @@ function drawBufferCanvasMap(){
 			nx++;
 		} else {
 			ny++;
-		}
+		}*/
 	}
 	
 }
@@ -280,14 +300,14 @@ function terrainGeneration(){
 function generateMap(){
 
         _MAP 			= generateTerrainMap(_MAP_PIXEL_DIMENSION, _PIXEL_UNIT_SIZE, _MAP_ROUGHNESS);
-		tiledmap 		= convertToTiledMap(_MAP_PIXEL_DIMENSION, _MAP);
-		tiledmap		= updateTileMap(tiledmap);
+		tiledmap 		= convertToTiledMap(_MAP);
+		//tiledmap		= updateTileMap(tiledmap);
 
 		setRandomStartPoint();
 		gameLoop();
 }
 
-function updateTileMap(mapTileData){
+/*function updateTileMap(mapTileData){
 
 	var x = 0,
 		y = 0,
@@ -307,7 +327,7 @@ function updateTileMap(mapTileData){
 	}
 	
 	return mapTileData;
-}
+}*/
 
 function getTileName(i){
 	
@@ -330,7 +350,9 @@ function getTileName(i){
 	return name;
 }
 	
-function convertToTiledMap(size, mapData){
+function convertToTiledMap(mapData){
+	
+	
 	
 	var nwe = parseFloat(10)/100,
 		nse = nwe + parseFloat(10)/100,
@@ -341,6 +363,10 @@ function convertToTiledMap(size, mapData){
 		tiles = new Array(),
 		x = 0,
 		y = 0;
+	
+	var d = _MAP_PIXEL_DIMENSION;
+	var tiles = create2DArray(d, d);
+	
 	
 	rangeWaterStart 	= 0,
 	rangeWaterEnd 		= nwe,
@@ -355,37 +381,55 @@ function convertToTiledMap(size, mapData){
 	rangeSnowStart 		= rangeRockEnd,
 	rangeSnowEnd 		= noe;
 	
-	for(x = 0; x <= size; x = x+_PIXEL_UNIT_SIZE){
-		for(y = 0; y <= size; y = y+_PIXEL_UNIT_SIZE){
+	for(x = 0; x < _MAP_PIXEL_DIMENSION; x++){
+		for(y = 0; y < _MAP_PIXEL_DIMENSION; y++){
 			
 			try{
 				
-				var  data = mapData[x][y];
+				var data = mapData[x][y];
+				var tempTile = new Tile(_TILE_WATER);
+					tempTile.index = (y*_MAP_PIXEL_DIMENSION)+x;
+					tempTile.x = x;
+					tempTile.y = y;
 				
 				if (data >= rangeWaterStart && data <= rangeWaterEnd) {
 				
-					tiles.push(new Tile(_TILE_WATER));
+					//tiles.push(new Tile(_TILE_WATER));
+					tempTile.type = _TILE_WATER;
+					
 					
 				} else if (data > rangeSandStart && data <= rangeSandEnd) {
 					
-					tiles.push(new Tile(_TILE_SAND));
+					//tiles.push(new Tile(_TILE_SAND));
+					//tiles[_X][_Y] = new Tile(_TILE_SAND);
+					tempTile.type = _TILE_SAND;
 					
 				} else if (data > rangeGrassStart && data <= rangeGrassEnd) {
 					
-					tiles.push(new Tile(_TILE_GRASS));
+					//tiles.push(new Tile(_TILE_GRASS));
+					//tiles[_X][_Y] = new Tile(_TILE_GRASS);
+					tempTile.type = _TILE_GRASS;
 					
 				} else if (data > rangeMountainStart && data <= rangeMountainEnd) {
 					
-					tiles.push(new Tile(_TILE_GRASS_MEDIUM));
+					//tiles.push(new Tile(_TILE_GRASS_MEDIUM));
+					//tiles[_X][_Y] = new Tile(_TILE_GRASS_MEDIUM);
+					tempTile.type = _TILE_GRASS_MEDIUM;
 					
 				} else if (data > rangeRockStart && data <= rangeRockEnd) {
 					
-					tiles.push(new Tile(_TILE_GRASS_HARD));
+					//tiles.push(new Tile(_TILE_GRASS_HARD));
+					//tiles[_X][_Y] = new Tile(_TILE_GRASS_HARD);
+					tempTile.type = _TILE_GRASS_HARD;
 					
 				} else if (data > rangeSnowStart) {
 					
-					tiles.push(new Tile(_TILE_TREE));
+					//tiles.push(new Tile(_TILE_TREE));
+					//tiles[_X][_Y] = new Tile(_TILE_TREE);
+					tempTile.type = _TILE_TREE;
 				}
+				
+				tiles[x][y] = tempTile;
 				
 			} catch (err){
 				$("#output").append(err.message+'<br>');
@@ -393,12 +437,15 @@ function convertToTiledMap(size, mapData){
 		}
 	}
 	
+	console.log(tiles.length);
+	
 	return tiles;
 }
 
 function setRandomStartPoint(){
-	var l = tiledmap.length;
-	currentPlayerIndex = getRandomInt(0, l);
+	var l = (tiledmap.length)-1;
+	currentPlayerIndex = getRandomInt(0, l*l);
+	console.log("setRandomStartPoint currentPlayerIndex:"+currentPlayerIndex);
 }
 
 function drawViewportPlayer(x,y,alpha){
@@ -420,35 +467,73 @@ function drawViewportPlayer(x,y,alpha){
 
 function getCoordsFromIndex(index){
 	
-	return {x:tiledmap[index].x, y:tiledmap[index].y};
+	var _X = index%tiledmap.length;
+	var _Y = Math.round(index/tiledmap.length);
+	
+	console.log('getCoordsFromIndex:'+_X+','+_Y);
+	
+	return {x:_X, y:_Y};
 }
 
 function getViewportMap(index){
 
 	var pos = getCoordsFromIndex(index),
 		offset = viewportOffsetRowsCols*0.5,
-		dim = parseInt(_MAP_PIXEL_DIMENSION)/parseInt(_PIXEL_UNIT_SIZE),
-		ltx = parseInt(pos.x)-parseInt(offset),
-		lty = parseInt(pos.y)-parseInt(offset),
-		rtx = parseInt(pos.x)+parseInt(offset),
-		rty = parseInt(lty),
-		lbx = parseInt(ltx),
-		lby = parseInt(pos.y)+parseInt(offset),
-		rbx = parseInt(rtx),
-		rby = parseInt(lby),
-		aView = [];
+		dim = parseInt(_MAP_PIXEL_DIMENSION),
+			ltx = parseInt(pos.x)-parseInt(offset),
+			lty = parseInt(pos.y)-parseInt(offset),
+			rtx = parseInt(pos.x)+parseInt(offset),
+		/*rty = parseInt(lty),
+		lbx = parseInt(ltx),*/
+			lby = parseInt(pos.y)+parseInt(offset),
+		/*rbx = parseInt(rtx),
+		rby = parseInt(lby),*/
+		aView = create2DArray(viewportRowsCols, viewportRowsCols),
+		_X = 0,
+		_Y = 0;
+		
+	/*console.log("pos.x:"+pos.x);
+	console.log("pos.y:"+pos.y);
+	
+	console.log("ltx:"+ltx);
+	console.log("rtx:"+rtx);
+	
+	console.log("lty:"+lty);
+	console.log("lby:"+lby);*/
+	
 	
 	for(var x = ltx; x <= rtx; x++){
+		
+		_Y = 0;
+		
 		for(var y = lty; y <= lby; y++){
-			if(x<0 || x>dim || y<0 || y>dim){
-				var emptyTile = new Tile(_TILE_EMPTY);
+			
+			
+			
+			if( x > -1 
+				&& x < dim 
+				&& y > -1 
+				&& y < dim){
+					
+					aView[_X][_Y] = tiledmap[x][y];
 				
-				aView.push(emptyTile);
-			} else{
-				aView.push(tiledmap[x+(y*dim)]);
+				
+			} else {
+				
+				var tempTile = new Tile(_TILE_EMPTY);
+					tempTile.index = (y*_MAP_PIXEL_DIMENSION)+x;
+					tempTile.x = x;
+					tempTile.y = y;
+				
+				aView[_X][_Y] = tempTile;
+				
 			}
+			_Y++;
 		}
+		_X++;
 	}
+	
+	//console.log(aView.length);
 	
 	return aView;
 }
@@ -550,14 +635,15 @@ function makePanel(x,y,w,h){
 
 function updateViewPortCollision(){
 	
-	viewportCollisionMap = listToMatrix(viewportMap, viewportRowsCols);
+	//viewportCollisionMap = listToMatrix(viewportMap, viewportRowsCols);
+	viewportCollisionMap = create2DArray(viewportRowsCols, viewportRowsCols);
 	
 	// On met a plat avec que des '0' et '1' pour la collision
-	for(var i=0; i < viewportRowsCols; i++){
+	for(var i = 0; i < viewportRowsCols; i++){
 		for(var j = 0; j < viewportRowsCols; j++){
-			if( viewportCollisionMap[i][j].type == _TILE_WATER 
-				|| viewportCollisionMap[i][j].type == _TILE_TREE
-				|| viewportCollisionMap[i][j].type == _TILE_EMPTY ){
+			if( viewportMap[i][j].type == _TILE_WATER 
+				|| viewportMap[i][j].type == _TILE_TREE
+				|| viewportMap[i][j].type == _TILE_EMPTY ){
 				viewportCollisionMap[i][j] = 1;
 			} else {
 				viewportCollisionMap[i][j] = 0;
@@ -576,11 +662,12 @@ function updateViewPortFOV(x,y){
 	var plx = x,
 		ply = y;
 		
-	viewportFovMap = listToMatrix(viewportMap, viewportRowsCols);
+	//viewportFovMap = listToMatrix(viewportMap, viewportRowsCols);
+	viewportFovMap = create2DArray(viewportRowsCols, viewportRowsCols);
 		
 	for(var i=0; i < viewportRowsCols; i++){
 		for(var j = 0; j < viewportRowsCols; j++){
-			if( viewportFovMap[i][j].type == _TILE_EMPTY ){
+			if( viewportMap[i][j].type == _TILE_EMPTY ){
 				viewportFovMap[i][j] = 1;
 			} else {
 				viewportFovMap[i][j] = 0;
@@ -600,13 +687,14 @@ function updateViewPortMoves(x,y){
 	var plx = x,
 		ply = y;
 		
-	viewportMovesMap = listToMatrix(viewportMap, viewportRowsCols);
+	//viewportMovesMap = listToMatrix(viewportMap, viewportRowsCols);
+	viewportMovesMap = create2DArray(viewportRowsCols, viewportRowsCols);
 		
 	for(var i=0; i < viewportRowsCols; i++){
 		for(var j = 0; j < viewportRowsCols; j++){
-			if( viewportMovesMap[i][j].type == _TILE_WATER 
-				|| viewportMovesMap[i][j].type == _TILE_TREE
-				|| viewportMovesMap[i][j].type == _TILE_EMPTY ){
+			if( viewportMap[i][j].type == _TILE_WATER 
+				|| viewportMap[i][j].type == _TILE_TREE
+				|| viewportMap[i][j].type == _TILE_EMPTY ){
 				viewportMovesMap[i][j] = 1;
 			} else {
 				viewportMovesMap[i][j] = 0;

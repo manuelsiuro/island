@@ -4,24 +4,7 @@ function generateTerrainMap(mapDimension, unitSize, roughness) {
 	startDisplacement(map, mapDimension);
 	return map;
 
-	// Setup the map array for use
-	function create2DArray(d1, d2) {
-		var x = new Array(d1),
-		i = 0,
-		j = 0;
-
-		for (i = 0; i < d1; i += 1) {
-			x[i] = new Array(d2);
-		}
-
-		for (i=0; i < d1; i += 1) {
-			for (j = 0; j < d2; j += 1) {
-				x[i][j] = 0;
-			}
-		}
-
-		return x;
-	}
+	
 
 	// Starts off the map generation, seeds the first 4 corners
 	function startDisplacement(map, mapDimension){

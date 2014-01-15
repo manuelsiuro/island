@@ -22,7 +22,8 @@ function onUpCallback(event){
 	
 	//console.log("KEY_UP : " + event.keyCode);
 	
-	var dim = mapDimension/unitSize;
+	var dim = _MAP_PIXEL_DIMENSION+1;
+	var maxIndex = _MAP_PIXEL_DIMENSION*_MAP_PIXEL_DIMENSION;
 	var save = currentPlayerIndex;
 	var nIndex = 0;
 	
@@ -31,30 +32,42 @@ function onUpCallback(event){
 		nIndex = currentPlayerIndex - dim;
 		if(nIndex>=0)
 			currentPlayerIndex = nIndex;
+			
+		bUpdate = true;
 		
 	} else if( event.keyCode == 39 ){
 		// RIGHT
 		nIndex = ++currentPlayerIndex;
-		if(nIndex <= tiledmap.length)
+		if(nIndex <= maxIndex)
 			currentPlayerIndex = nIndex;
+			
+		bUpdate = true;
 
 	} else if( event.keyCode == 40 ){
 		// DOWN
-		nIndex = currentPlayerIndex + dim;
-		if(nIndex <= tiledmap.length)
+		nIndex = parseInt(currentPlayerIndex) + parseInt(dim);
+		if(nIndex <= maxIndex)
 			currentPlayerIndex = nIndex;
+			
+		bUpdate = true;
 
 	} else if( event.keyCode == 37 ){
 		// LEFT
 		nIndex = --currentPlayerIndex;
 		if(nIndex>=0)
 			currentPlayerIndex = nIndex;
+			
+		bUpdate = true;
+		
 	} else if( event.keyCode == 70 ){ // f
 		// FOV
 		bFovEnable = !bFovEnable;
+		bUpdate = true;
+		
 	} else if( event.keyCode == 77 ){ // m
 		// MOVES
 		bMvtEnable = !bMvtEnable;
+		bUpdate = true;
 	}
 }
 
@@ -96,18 +109,12 @@ function handleClick(x, y) {
 	
 	_GRID_X = Math.round((x-offsetA)/offsetB);
     _GRID_Y = Math.round((y-offsetA)/offsetB);
-	//var dim = 9;
-	var index = parseInt(_GRID_Y)+(parseInt(_GRID_X)*parseInt(viewportRowsCols));
-	//var index = parseInt(_GRID_X)+(parseInt(_GRID_Y)*parseInt(dim));
-	
-	
-	
-	//html += "<p>viewportTileSize:" + viewportTileSize + "</p>";
-	//html += "<p>viewportRowsCols:" + viewportRowsCols + "</p>";
-	
-	html += "<p>xy:" + x + " " + y + "</p>";
-	html += "<p>grid:" + _GRID_X + " " + _GRID_Y + "</p>";
-	html += "<p>local index:" + index + "</p>";
+
+	/*console.log("x:" + x + " y:" + y);
+	console.log("_GRID_X:" + _GRID_X + " _GRID_X:" + _GRID_Y);
+	console.log("currentPlayerIndex:" + currentPlayerIndex);
+	console.log("tiledmap index:" + viewportMap[_GRID_X][_GRID_Y].index);
+	console.info("---");*/
 	
 	try {
 
@@ -115,18 +122,12 @@ function handleClick(x, y) {
 		pathStart 	= [viewportOffsetRowsCols*0.5,viewportOffsetRowsCols*0.5];
 		pathEnd 	= [_GRID_X,_GRID_Y];
 		currentPath = [];
-		
-		
 		currentPath = findPath(getViewPortCollisionWorld(),pathStart,pathEnd);
-		
 		console.log(currentPath);
-		
 		currentPath.shift(); // enleve le premier qui est le point de depart
 		//astarFadeStep = currentPath.length;
 		console.log(currentPath);
 		*/
-		//setFovCollisionWorld(world, _GRID_X, _GRID_Y);
-		
 		
 		// Test if center of grid, if true it's current selected player
 		if ( _GRID_X == viewportOffsetRowsCols*0.5 && _GRID_Y == viewportOffsetRowsCols*0.5){
@@ -134,43 +135,30 @@ function handleClick(x, y) {
 			bPlayerSelected = !bPlayerSelected;
 			bMvtEnable = !bMvtEnable;
 			
-		} 
+		}
 		
-		
-		if( viewportMap[index].type != _TILE_TREE 
-			&& viewportMap[index].type != _TILE_WATER
+		if( viewportMap[_GRID_X][_GRID_Y].type != _TILE_TREE 
+			&& viewportMap[_GRID_X][_GRID_Y].type != _TILE_WATER
 			&& viewportMovesMap[_GRID_X][_GRID_Y] == 2
 			&& bMvtEnable ){
 			
-				currentPlayerIndex = viewportMap[index].index;
+				currentPlayerIndex = viewportMap[_GRID_X][_GRID_Y].index;
 				bUpdate = true;
 		}
 		
-		if( !bMvtEnable ){
+		/*if( !bMvtEnable ){
 			
 			console.log(html);
 
-		}
+		}*/
 		
 		// On est dans le panel
-		if(_GRID_Y >= viewportRowsCols ){
+		/*if(_GRID_Y >= viewportRowsCols ){
 			bUpdate = true;
-		}
-		
-		
-		/*html += "<p>population:" + viewportMap[index].population + " <a class='plus-population button'>+</a></p>";
-		html += "<p>map index:<span id='tile-index'>" + viewportMap[index].index + "</span></p>";
-		html += "<p>tiledmap:" + getTileName(viewportMap[index].type) + "</p>";
-		html += "<p>wood:" + viewportMap[index].wood + "</p>";
-		html += "<p>rock:" + viewportMap[index].rock + "</p>";
-		html += "<p>cuivre:" + viewportMap[index].cuivre + "</p>";
-		html += "<p>fer:" + viewportMap[index].fer + "</p>";
-		html += "<p>or:" + viewportMap[index].or + "</p>";*/
-		
+		}*/
 		
 	}catch(err){}
 	
-	//$("#output").html(html);
 }
 
 function handleMove(x, y) {
