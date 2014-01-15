@@ -1,9 +1,7 @@
-var mapDimension,
-	unitSize, // Power of 2
-	roughness,
-	genPerspective,
-	genShadows, sunX = 300, sunY = 300,
-	map,
+var _MAP_PIXEL_DIMENSION = 512,
+	_PIXEL_UNIT_SIZE = 4, // Power of 2
+	_MAP_ROUGHNESS = 8,
+	_MAP,
 	tiledmap,
 	generate = $('#generate'),
 	btnSaveMap = document.getElementById('savemap'),
@@ -293,11 +291,8 @@ function terrainGeneration(){
 //http://nethackwiki.com/wiki/Monster#Canonical_list_of_monsters
 function generateMap(){
 
-        roughness 		= 8,
-        mapDimension 	= 512,
-        unitSize 		= 4,
-        map 			= generateTerrainMap(mapDimension, unitSize, roughness);
-		tiledmap 		= convertToTiledMap(mapDimension,map);
+        _MAP 			= generateTerrainMap(_MAP_PIXEL_DIMENSION, _PIXEL_UNIT_SIZE, _MAP_ROUGHNESS);
+		tiledmap 		= convertToTiledMap(_MAP_PIXEL_DIMENSION, _MAP);
 		tiledmap		= updateTileMap(tiledmap);
 
 		setRandomStartPoint();
@@ -306,53 +301,15 @@ function generateMap(){
 
 function updateTileMap(mapTileData){
 
-	var r = 0, 
-		g = 0, 
-		b = 0, 
-		gamma = 500,
-		colorFill = 0,
-		x = 0,
+	var x = 0,
 		y = 0,
-		dim = mapDimension/unitSize;
+		dim = _MAP_PIXEL_DIMENSION/_PIXEL_UNIT_SIZE;
 	
 	for(var i = 0; i < mapTileData.length; i++){
-		
-		colorFill = {r : 0, g : 0, b : 0};
 
-		var  data = mapTileData[i].type;
-		
-		if (data == _TILE_WATER ) {
-			
-			colorFill = {r: 52, g: 152, b: 219 };
-			
-		} else if (data == _TILE_SAND) {
-			
-			colorFill = {r: 241, g: 196, b: 15 };
-			
-		} else if (data == _TILE_GRASS) {
-			
-			colorFill = {r: 39, g: 174, b: 96 };
-			
-		} else if (data == _TILE_GRASS_MEDIUM) {
-			
-			colorFill = {r: 192, g: 57, b: 43 };
-			
-		} else if (data == _TILE_GRASS_HARD) {
-			
-			colorFill = {r: 127, g: 140, b: 141 };
-			
-		} else if (data == _TILE_TREE) {
-			
-			colorFill = {r: 236, g: 240, b: 241 };
-			
-		} else{
-			colorFill = {r: 0, g: 0, b: 0 };
-		}
-		
 		mapTileData[i].index = i;
 		mapTileData[i].x = x;
 		mapTileData[i].y = y;
-		mapTileData[i].colorFill = colorFill;
 		
 		x++;
 		if(x==dim){
@@ -410,8 +367,8 @@ function convertToTiledMap(size, mapData){
 	rangeSnowStart 		= rangeRockEnd,
 	rangeSnowEnd 		= noe;
 	
-	for(x = 0; x <= size; x = x+unitSize){
-		for(y = 0; y <= size; y = y+unitSize){
+	for(x = 0; x <= size; x = x+_PIXEL_UNIT_SIZE){
+		for(y = 0; y <= size; y = y+_PIXEL_UNIT_SIZE){
 			
 			try{
 				
@@ -482,7 +439,7 @@ function getViewportMap(index){
 
 	var pos = getCoordsFromIndex(index),
 		offset = viewportOffsetRowsCols*0.5,
-		dim = parseInt(mapDimension)/parseInt(unitSize),
+		dim = parseInt(_MAP_PIXEL_DIMENSION)/parseInt(_PIXEL_UNIT_SIZE),
 		ltx = parseInt(pos.x)-parseInt(offset),
 		lty = parseInt(pos.y)-parseInt(offset),
 		rtx = parseInt(pos.x)+parseInt(offset),
