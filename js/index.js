@@ -60,8 +60,8 @@ var _MAP_PIXEL_DIMENSION = 128,
 	isIphone = navigator.userAgent.match(/iPhone/i) != null,
 	isAndroid = navigator.userAgent.match(/Android/i) != null,
 	useTouch = isIpad | isIphone | isAndroid,
-	_SCREEN_WIDTH = (useTouch) ? screen.width : $(window).width(),
-	_SCREEN_HEIGHT = (useTouch) ? screen.height : $(window).height(),
+	_SCREEN_WIDTH = 320,
+	_SCREEN_HEIGHT = 240,
 	currentPlayerIndex = 0,
 	_FOV = 4,
 	_MVT = 2,
@@ -89,6 +89,9 @@ function init(){
 		_TILES_MAP[idx].population++;
 	});*/
 	
+	_SCREEN_WIDTH = $(window).width(),
+	_SCREEN_HEIGHT = (useTouch) ? screen.height : $(window).height();
+	
 	viewportCanvas.width = _SCREEN_WIDTH;
 	viewportCanvas.height = _SCREEN_HEIGHT;
 	
@@ -103,6 +106,8 @@ function init(){
 	
 	panelCanvas.width = _SCREEN_WIDTH;
 	panelCanvas.height = _SCREEN_HEIGHT;
+	
+	panelContext.font = '14px silkscreennormal, cursive';
 		
 	window.scrollTo( 0, 1 );
 	
