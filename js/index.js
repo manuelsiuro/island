@@ -430,7 +430,7 @@ function getViewportMap(index){
 	console.log(index);
 
 	var pos = getCoordsFromIndex(index),
-		offset = viewportOffsetRowsCols*0.5,
+		offset = (viewportOffsetRowsCols*0.5),
 		ltx = parseInt(pos.x)-parseInt(offset),
 		lty = parseInt(pos.y)-parseInt(offset),
 		rtx = parseInt(pos.x)+parseInt(offset),

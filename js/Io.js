@@ -111,6 +111,9 @@ function handleClick(x, y) {
 	_GRID_X = Math.round((x-offsetA)/offsetB);
     _GRID_Y = Math.round((y-offsetA)/offsetB);
 
+
+console.log("_GRID_X:" + _GRID_X + " _GRID_X:" + _GRID_Y);
+
 	/*console.log("x:" + x + " y:" + y);
 	console.log("_GRID_X:" + _GRID_X + " _GRID_X:" + _GRID_Y);
 	console.log("currentPlayerIndex:" + currentPlayerIndex);
@@ -142,7 +145,7 @@ function handleClick(x, y) {
 			bMvtEnable = !bMvtEnable;
 			
 			//currentPlayerIndex = viewportMap[_GRID_X][_GRID_Y].index;
-			//bUpdate = true;
+			bUpdate = true;
 			
 			
 		}
@@ -151,9 +154,10 @@ function handleClick(x, y) {
 		if( viewportMap[_GRID_X][_GRID_Y].type != _TILE_TREE 
 			&& viewportMap[_GRID_X][_GRID_Y].type != _TILE_WATER
 			&& viewportMovesMap[_GRID_X][_GRID_Y] == 2
-			&& bMvtEnable ){
+			&& bMvtEnable 
+			&& _GRID_X != _GRID_Y ){
 			
-				//currentPlayerIndex = viewportMap[_GRID_X][_GRID_Y].index;
+				currentPlayerIndex = viewportMap[_GRID_X][_GRID_Y].index;
 				console.dir(viewportMap[_GRID_X][_GRID_Y]);
 				bUpdate = true;
 		}
