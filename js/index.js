@@ -1,6 +1,8 @@
-var _MAP_PIXEL_DIMENSION = 128,
+var _MAP_PIXEL_DIMENSION = 512,
 	_PIXEL_UNIT_SIZE = 1, // Power of 2
 	_MAP_ROUGHNESS = 8,
+	_FOV = 8,
+	_MVT = 2,
 	_MAP,
 	_TILES_MAP,
 	viewportCanvas = document.getElementById('viewport'),
@@ -14,7 +16,7 @@ var _MAP_PIXEL_DIMENSION = 128,
 	panelCanvas = document.createElement('canvas'),
 	panelContext = panelCanvas.getContext('2d'),
 	viewportTileSize = 16,
-	viewportRowsCols = 13,
+	viewportRowsCols = 33,
 	viewportOffsetRowsCols = viewportRowsCols-1,
 	zoom = viewportTileSize*1.5,
 	viewportMap = [],
@@ -63,8 +65,6 @@ var _MAP_PIXEL_DIMENSION = 128,
 	_SCREEN_WIDTH = 320,
 	_SCREEN_HEIGHT = 240,
 	currentPlayerIndex = 0,
-	_FOV = 4,
-	_MVT = 2,
 	pathStart = [viewportRowsCols,viewportRowsCols],
 	pathEnd = [0,0],
 	currentPath = [],
@@ -140,10 +140,11 @@ function gameLoop() {
 		
 		if(bUpdate){
 			update();
+			redraw();
 			bUpdate = false;
 		}
 		
-		redraw();
+		//redraw();
 		
 		frame++;
 		
@@ -348,9 +349,9 @@ function convertToTiledMap(mapData){
 	
 	var tiles 				= create2DArray(_MAP_PIXEL_DIMENSION, _MAP_PIXEL_DIMENSION),
 		rangeWaterStart 	= 0,
-		rangeWaterEnd 		= 0.1,
+		rangeWaterEnd 		= 0.3,
 		rangeSandStart 		= rangeWaterEnd,
-		rangeSandEnd 		= 0.2,
+		rangeSandEnd 		= 0.4,
 		rangeGrassStart 	= rangeSandEnd,
 		rangeGrassEnd 		= 0.7,
 		rangeMountainStart 	= rangeGrassEnd,

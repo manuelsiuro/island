@@ -9,11 +9,12 @@ var Tile = function(type){
 	this.y = 0;
 	this.colorFill = {r : 0, g : 0, b : 0};
 	this.type = type;
-	this.wood = getRandomInt(0, 30);
-	this.rock = getRandomInt(0, 30);
-	this.cuivre = getRandomInt(0, 20);
-	this.fer = getRandomInt(0, 10);
-	this.or = getRandomInt(0, 5);
-	this.population = getRandomInt(10, 80);
+	//this.wood = getRandomInt(0, 30);
+	this.wood = Math.random()*30<<0;
+	this.rock = Math.random()*30<<0;
+	this.cuivre = Math.random()*30<<0;
+	this.fer = Math.random()*30<<0;
+	this.or = Math.random()*10<<0;
+	this.population = Math.random()*100<<0;
 
 }

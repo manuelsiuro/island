@@ -155,7 +155,7 @@ console.log("_GRID_X:" + _GRID_X + " _GRID_X:" + _GRID_Y);
 			&& viewportMap[_GRID_X][_GRID_Y].type != _TILE_WATER
 			&& viewportMovesMap[_GRID_X][_GRID_Y] == 2
 			&& bMvtEnable 
-			&& _GRID_X != _GRID_Y ){
+			&& notPlayerGrid(_GRID_X, _GRID_Y) ){
 			
 				currentPlayerIndex = viewportMap[_GRID_X][_GRID_Y].index;
 				console.dir(viewportMap[_GRID_X][_GRID_Y]);
@@ -175,6 +175,16 @@ console.log("_GRID_X:" + _GRID_X + " _GRID_X:" + _GRID_Y);
 		
 	}catch(err){}
 	
+}
+
+function notPlayerGrid(x, y){
+
+	if(_GRID_X == viewportOffsetRowsCols*0.5 && _GRID_Y == viewportOffsetRowsCols*0.5){
+		return false;
+	}else{
+		return true;
+	}
+
 }
 
 function handleMove(x, y) {
