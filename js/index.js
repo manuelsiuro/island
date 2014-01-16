@@ -264,7 +264,7 @@ function drawBufferPanel(){
 	panelContext.fillText(viewportMap[_X][_Y].or, dataMarginLeft, startline);
 	startline += lineHeight;
 	
-	panelContext.fillText("Grid", labelMarginLeft, startline);
+	/**/panelContext.fillText("Grid", labelMarginLeft, startline);
 	panelContext.fillText(_GRID_X + ',' + _GRID_Y, dataMarginLeft, startline);
 	startline += lineHeight;
 }
@@ -276,7 +276,7 @@ function drawBufferMoves(){
 		bufferMovesContext.clearRect(0, 0, viewportCanvas.height, viewportCanvas.width);
 		
 		for(var i = 0; i < viewportMovesMap.length; i++){
-			for(var j = 0; j < viewportMovesMap.length; j++){
+			for(var j = 0; j < viewportMovesMap[i].length; j++){
 				if(viewportMovesMap[i][j]==2){
 					bufferMovesContext.drawImage(sprites[_TILE_MOVES], i*zoom, j*zoom, zoom, zoom);
 				}
@@ -292,7 +292,7 @@ function drawBufferFOV(){
 		bufferFovContext.clearRect(0, 0, viewportCanvas.height, viewportCanvas.width);
 		
 		for(var i = 0; i < viewportFovMap.length; i++){
-			for(var j = 0; j < viewportFovMap.length; j++){
+			for(var j = 0; j < viewportFovMap[i].length; j++){
 				if(viewportFovMap[i][j]!=2){
 					bufferFovContext.drawImage(sprites[_TILE_EMPTY], i*zoom, j*zoom, zoom, zoom);
 				}
@@ -426,10 +426,11 @@ function getCoordsFromIndex(index){
 }
 
 function getViewportMap(index){
+	
+	console.log(index);
 
 	var pos = getCoordsFromIndex(index),
 		offset = viewportOffsetRowsCols*0.5,
-		dim = parseInt(_MAP_PIXEL_DIMENSION),
 		ltx = parseInt(pos.x)-parseInt(offset),
 		lty = parseInt(pos.y)-parseInt(offset),
 		rtx = parseInt(pos.x)+parseInt(offset),
@@ -437,11 +438,13 @@ function getViewportMap(index){
 		aView = create2DArray(viewportRowsCols, viewportRowsCols),
 		_X = 0,
 		_Y = 0;
+	
+	console.log(pos);
 		
 	for(var x = ltx; x <= rtx; x++){
 		_Y = 0;
 		for(var y = lty; y <= lby; y++){
-			if( x > -1 && x < dim && y > -1 && y < dim){
+			if( x > -1 && x < _MAP_PIXEL_DIMENSION && y > -1 && y < _MAP_PIXEL_DIMENSION){
 				aView[_X][_Y] = _TILES_MAP[x][y];
 			} else {
 				var tempTile = new Tile(_TILE_EMPTY);
