@@ -1,7 +1,7 @@
-var _MAP_PIXEL_DIMENSION = 512,
+var _MAP_PIXEL_DIMENSION = 64,
 	_PIXEL_UNIT_SIZE = 1, // Power of 2
 	_MAP_ROUGHNESS = 8,
-	_FOV = 8,
+	_FOV = 4,
 	_MVT = 2,
 	_MAP,
 	_TILES_MAP,
@@ -16,7 +16,7 @@ var _MAP_PIXEL_DIMENSION = 512,
 	panelCanvas = document.createElement('canvas'),
 	panelContext = panelCanvas.getContext('2d'),
 	viewportTileSize = 16,
-	viewportRowsCols = 33,
+	viewportRowsCols = 13,
 	viewportOffsetRowsCols = viewportRowsCols-1,
 	zoom = viewportTileSize*1.5,
 	viewportMap = [],
@@ -47,7 +47,7 @@ var _MAP_PIXEL_DIMENSION = 512,
 	rangeSnowStart = 0,
 	rangeSnowEnd = 0,
 	animation = null,
-	fps = 6,
+	fps = 30,
 	frame = 0,
 	lastUpdateTime = 0,
 	acDelta = 0,
@@ -140,11 +140,11 @@ function gameLoop() {
 		
 		if(bUpdate){
 			update();
-			redraw();
+			//redraw();
 			bUpdate = false;
 		}
 		
-		//redraw();
+		redraw();
 		
 		frame++;
 		
@@ -178,20 +178,26 @@ function redraw(){
 	drawViewportPlayer();
 }
 
+var _MAP_OFFSET_X = 0;
+var _MAP_OFFSET_Y = 0;
+
 function drawViewPortMap(){
+	
+	//_MAP_OFFSET_X+=5;
+	//_MAP_OFFSET_Y+=5;
 	
 	viewportCtx.clearRect(0, 0, viewportCanvas.height, viewportCanvas.width);
 
-	viewportCtx.drawImage(bufferMapCanvas, 0, 0);
+	viewportCtx.drawImage(bufferMapCanvas, _MAP_OFFSET_X, _MAP_OFFSET_Y);
 	
 	if(bFovEnable)
-		viewportCtx.drawImage(bufferFovCanvas, 0, 0);
+		viewportCtx.drawImage(bufferFovCanvas,  _MAP_OFFSET_X, _MAP_OFFSET_Y);
 		
 	if(bMvtEnable)
-		viewportCtx.drawImage(bufferMovesCanvas, 0, 0);
+		viewportCtx.drawImage(bufferMovesCanvas,  _MAP_OFFSET_X, _MAP_OFFSET_Y);
 	
 	if(bUiEnable)	
-		viewportCtx.drawImage(panelCanvas, 0, 0);	
+		viewportCtx.drawImage(panelCanvas,  _MAP_OFFSET_X, _MAP_OFFSET_Y);
 	
 		
 	// Collision and Astar

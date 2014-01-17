@@ -159,6 +159,8 @@ console.log("_GRID_X:" + _GRID_X + " _GRID_X:" + _GRID_Y);
 			
 				currentPlayerIndex = viewportMap[_GRID_X][_GRID_Y].index;
 				console.dir(viewportMap[_GRID_X][_GRID_Y]);
+				bMvtEnable = false;
+				bPlayerSelected = false;
 				bUpdate = true;
 		}
 		
