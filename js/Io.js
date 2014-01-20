@@ -97,22 +97,13 @@ function mouseMove(ev) {
 
 function handleClick(x, y) {	
 
-	var html = '';
-	var obj = viewportCanvas;
+
     var _off = $(viewportCanvas).offset();
-    x = x - _off.left;
-    y = y - _off.top;
-	
-	var offsetA = viewportTileSize;
-	var offsetB = zoom;
-	
-	var lastIndex = currentPlayerIndex;
-	
-	_GRID_X = Math.round((x-offsetA)/offsetB);
-    _GRID_Y = Math.round((y-offsetA)/offsetB);
 
+	_GRID_X = ((x - _off.left)/zoom<<0),
+    _GRID_Y = ((y - _off.top)/zoom<<0);
 
-console.log("_GRID_X:" + _GRID_X + " _GRID_X:" + _GRID_Y);
+	console.log("_GRID_X:" + _GRID_X + " _GRID_X:" + _GRID_Y);
 
 	/*console.log("x:" + x + " y:" + y);
 	console.log("_GRID_X:" + _GRID_X + " _GRID_X:" + _GRID_Y);
@@ -151,18 +142,72 @@ console.log("_GRID_X:" + _GRID_X + " _GRID_X:" + _GRID_Y);
 		}
 		
 		/**/
-		if( viewportMap[_GRID_X][_GRID_Y].type != _TILE_TREE 
-			&& viewportMap[_GRID_X][_GRID_Y].type != _TILE_WATER
-			&& viewportMovesMap[_GRID_X][_GRID_Y] == 2
-			&& bMvtEnable 
-			&& notPlayerGrid(_GRID_X, _GRID_Y) ){
+		
+		if(typeof viewportMap[_GRID_X][_GRID_Y] != 'undefined'){
 			
-				currentPlayerIndex = viewportMap[_GRID_X][_GRID_Y].index;
-				console.dir(viewportMap[_GRID_X][_GRID_Y]);
-				bMvtEnable = false;
-				bPlayerSelected = false;
-				bUpdate = true;
+			if( viewportMap[_GRID_X][_GRID_Y].type != _TILE_TREE 
+				&& viewportMap[_GRID_X][_GRID_Y].type != _TILE_WATER
+				&& viewportMovesMap[_GRID_X][_GRID_Y] == 2
+				&& bMvtEnable 
+				&& notPlayerGrid(_GRID_X, _GRID_Y) ){
+				
+					//currentPlayerIndex = viewportMap[_GRID_X][_GRID_Y].index;
+					
+					var nIndex = 0;
+					var maxIndex = _MAP_PIXEL_DIMENSION*_MAP_PIXEL_DIMENSION;
+					
+					// UP
+					if( _GRID_Y < viewportOffsetRowsCols*0.5) {
+						
+						var nline = (viewportOffsetRowsCols*0.5) - _GRID_Y;
+							nIndex = currentPlayerIndex - (_MAP_PIXEL_DIMENSION*nline);
+							
+						if(nIndex>=0)
+							currentPlayerIndex = nIndex;
+					}
+					
+					// DOWN
+					if( _GRID_Y > viewportOffsetRowsCols*0.5) {
+						
+						var nline = _GRID_Y - (viewportOffsetRowsCols*0.5);
+							nIndex = currentPlayerIndex + (_MAP_PIXEL_DIMENSION*nline);
+						
+						if(nIndex <= maxIndex)
+							currentPlayerIndex = nIndex;
+						
+					}
+					
+					// LEFT
+					if( _GRID_X < viewportOffsetRowsCols*0.5) {
+						
+						
+						var nline = (viewportOffsetRowsCols*0.5) - _GRID_X;
+							nIndex = currentPlayerIndex-nline;
+						
+						if(nIndex>=0)
+							currentPlayerIndex = nIndex;
+						
+					}
+					
+					// RIGHT
+					if( _GRID_X > viewportOffsetRowsCols*0.5) {
+						
+						var nline = _GRID_X - (viewportOffsetRowsCols*0.5);
+							nIndex = currentPlayerIndex+nline;
+						
+						if(nIndex <= maxIndex)
+							currentPlayerIndex = nIndex;
+					}
+					
+					console.dir(viewportMap[_GRID_X][_GRID_Y]);
+					bMvtEnable = false;
+					bPlayerSelected = false;
+					bUpdate = true;
+			}
+			
 		}
+		
+		
 		
 		/*if( !bMvtEnable ){
 			

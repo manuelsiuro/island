@@ -8,8 +8,34 @@
 		<link rel="stylesheet" href="styles/terrain.css" type="text/css"/>
 		<link rel="stylesheet" type="text/css" href="css/main.css" />  
 	</head>
+    <style>
+    #gameArea {
+	  position: absolute;
+	  left:     50%;
+	  top:      50%;
+	}
+	
+	#viewport {
+	  width: 100%;
+	  height: 100%;
+	}
+	
+	#statsPanel {
+	  position: absolute;
+	  width: 100%;
+	  height: 8%;
+	  bottom: 0;
+	  opacity: 0.8;
+	}
+    </style>
 	<body>
-		<canvas id="viewport" width="10" height="600"></canvas>
+    
+	<div id="gameArea">
+		<canvas id="viewport"></canvas>
+		<div id="statsPanel"></div>
+	</div>
+    
+		
 		<div id="weinre"></div>
 		
 		<script src="js/jquery.js"></script>
@@ -20,7 +46,7 @@
         <script src='js/Tools.js'></script>
         <script src='js/Astar.js'></script>
         <script src='js/Fov.js'></script>
-		<script src='js/index.js'></script>
+        <script src='js/index.js'></script>
         <script src='js/Io.js'></script>
         <script src='js/Sprites.js'></script>
 		<script>
@@ -30,6 +56,11 @@
 			document.getElementById("weinre").appendChild(el);
 			console.log("Start Weinre");
 			*/
+			
+		
+		
+	
+			
 		</script>
 	</body>
 </html>

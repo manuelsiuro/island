@@ -1,7 +1,7 @@
 var _MAP_PIXEL_DIMENSION = 64,
 	_PIXEL_UNIT_SIZE = 1, // Power of 2
 	_MAP_ROUGHNESS = 8,
-	_FOV = 4,
+	_FOV = 3,
 	_MVT = 2,
 	_MAP,
 	_TILES_MAP,
@@ -16,9 +16,9 @@ var _MAP_PIXEL_DIMENSION = 64,
 	panelCanvas = document.createElement('canvas'),
 	panelContext = panelCanvas.getContext('2d'),
 	viewportTileSize = 16,
-	viewportRowsCols = 13,
+	viewportRowsCols = 9,
 	viewportOffsetRowsCols = viewportRowsCols-1,
-	zoom = viewportTileSize*1.5,
+	zoom = viewportTileSize*2,
 	viewportMap = [],
 	viewportCollisionMap = null,
 	viewportFovMap = null,
@@ -71,12 +71,42 @@ var _MAP_PIXEL_DIMENSION = 64,
 	sprites = [],
 	sprites_img = document.createElement("img"),
 	_GRID_X = viewportOffsetRowsCols*0.5,
-	_GRID_Y = viewportOffsetRowsCols*0.5;
+	_GRID_Y = viewportOffsetRowsCols*0.5,
+	buttons = [];
 							  
 /* ------------------------------------------------------------------------------------------------------------------------------------------- */
 /* ------------------------------------------------------------------------------------------------------------------------------------------- */
 /* ------------------------------------------------------------------------------------------------------------------------------------------- */
+function resizeGame() {
+		var gameArea = document.getElementById('viewport');
+		var widthToHeight = 2 / 3;
+		var newWidth = window.innerWidth;
+		var newHeight = window.innerHeight;
+		var newWidthToHeight = newWidth / newHeight;
+		
+		if (newWidthToHeight > widthToHeight) {
+			newWidth = newHeight * widthToHeight;
+			gameArea.style.height = newHeight + 'px';
+			gameArea.style.width = newWidth + 'px';
+		} else {
+			newHeight = newWidth / widthToHeight;
+			gameArea.style.width = newWidth + 'px';
+			gameArea.style.height = newHeight + 'px';
+		}
+		
+		gameArea.style.marginTop = (-newHeight / 2) + 'px';
+		gameArea.style.marginLeft = (-newWidth / 2) + 'px';
+		
+		var gameCanvas = document.getElementById('viewport');
+		gameCanvas.width = newWidth;
+		gameCanvas.height = newHeight;
+	}
+	
+window.addEventListener('resize', resizeGame, false);
+window.addEventListener('orientationchange', resizeGame, false);
+		
 function init(){
+	resizeGame();
 	
 	/*
     btnSaveMap.onclick = function(){
@@ -89,11 +119,14 @@ function init(){
 		_TILES_MAP[idx].population++;
 	});*/
 	
+	/*
 	_SCREEN_WIDTH = $(window).width(),
 	_SCREEN_HEIGHT = (useTouch) ? screen.height : $(window).height();
-	
-	viewportCanvas.width = _SCREEN_WIDTH;
-	viewportCanvas.height = _SCREEN_HEIGHT;
+	*/
+	_SCREEN_WIDTH = viewportCanvas.width,
+	_SCREEN_HEIGHT = viewportCanvas.height;
+	//viewportCanvas.width = _SCREEN_WIDTH;
+	//viewportCanvas.height = _SCREEN_HEIGHT;
 	
 	bufferMapCanvas.width = _SCREEN_WIDTH;
 	bufferMapCanvas.height = _SCREEN_HEIGHT;
@@ -117,6 +150,18 @@ function init(){
 
 function terrainGeneration(){
 	generateMap();
+	
+	buttons['move'] = {				
+		sprite: makeButton({x:5, y:12, width:2, height:1, text:'MOVE'}),
+		width: 2,
+		height: 1,
+		position: {
+			x: 5,
+			y: 12
+		},
+		action: 'move',
+		value: 'move'
+	};
 }
 
 function generateMap(){
@@ -198,6 +243,9 @@ function drawViewPortMap(){
 	
 	if(bUiEnable)	
 		viewportCtx.drawImage(panelCanvas,  _MAP_OFFSET_X, _MAP_OFFSET_Y);
+		
+		
+	viewportCtx.drawImage(buttons['move'].sprite, buttons['move'].position.x*zoom, buttons['move'].position.y*zoom, buttons['move'].width*zoom, buttons['move'].height*zoom);
 	
 		
 	// Collision and Astar
@@ -235,10 +283,15 @@ function drawBufferPanel(){
 		lineHeight 		= 15,
 		labelMarginLeft = 15,
 		dataMarginLeft 	= 120,
-		startline 		= 350;
+		startline 		= zoom*viewportRowsCols+30;
 	
 	panelContext.clearRect(0, 0, panelCanvas.height, panelCanvas.width);
-	panelContext.drawImage(sprites[_TILE_PANEL], 0, 320, 320, 160);
+	panelContext.drawImage(sprites[_TILE_PANEL], 
+		0, // x
+		zoom*viewportRowsCols, // y
+		zoom*viewportRowsCols, // width
+		160	// height
+		);
 
 	panelContext.font = '14px silkscreennormal, cursive';
 	panelContext.fillStyle = 'black';
@@ -497,6 +550,51 @@ function makeSprite(x,y, flip){
 
 		return m_canvas2;
 	}
+	return m_canvas;
+}
+
+function makeButton(args){
+	
+	if(!args.width){
+		args.width = 1;
+	}
+	
+	if(!args.height){
+		args.height = 1;
+	}
+	
+	var m_canvas = document.createElement('canvas');
+		m_canvas.width = viewportTileSize * args.width;
+		m_canvas.height = viewportTileSize * args.height;
+		
+	var m_context = m_canvas.getContext('2d');
+		m_context.drawImage(sprites_img, -args.x*viewportTileSize, -args.y*viewportTileSize);
+	
+	if(args.sprite_over){
+		m_context.drawImage(sprites[args.sprite_over][0], ((m_canvas.width*0.5)<<0)-16, ((m_canvas.height*0.5)<<0)-16);        	
+	}
+
+	if(args.text || args.label){
+		var font_size = '10px',
+			color = 'white',
+			text = args.text,
+			x = (m_canvas.width*0.5)<<0,
+			y = (m_canvas.height*0.5)<<0;
+
+		if(args.label){
+			font_size = '10px';
+			color = 'white';
+			text = args.label;
+			y = (m_canvas.height*0.8)<<0;
+		}
+
+		m_context.fillStyle = color;        	
+		m_context.font = font_size+' silkscreennormal, cursive';
+		m_context.textBaseline = 'middle';
+		m_context.textAlign = 'center';
+		m_context.fillText(text, x, y);
+	}
+	
 	return m_canvas;
 }
 

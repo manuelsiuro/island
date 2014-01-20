@@ -30,3 +30,17 @@ sprites_img.onload = function(){
 sprites_img.setAttribute('crossOrigin','anonymous');
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
