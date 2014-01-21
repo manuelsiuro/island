@@ -11,7 +11,7 @@ var Player = function(){
 	this.moves = 2;
 	
 	this.wood = 0;
-	this.rock = ;
+	this.rock = 0;
 	this.cuivre = 0;
 	this.fer = 0;
 	this.or = 0;
