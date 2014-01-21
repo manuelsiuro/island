@@ -132,27 +132,28 @@ function handleClick(x, y) {
 		/**/
 		if ( _GRID_X == viewportOffsetRowsCols*0.5 && _GRID_Y == viewportOffsetRowsCols*0.5){
 			
-			bPlayerSelected = !bPlayerSelected;
-			bMvtEnable = !bMvtEnable;
-			
-			//currentPlayerIndex = viewportMap[_GRID_X][_GRID_Y].index;
+			//bPlayerSelected = !bPlayerSelected;
+			if(bPlayerSelected){
+				
+				bPlayerSelected = false;
+				bMvtEnable = false;
+				bWoodHaxe = false;
+				
+			} else {
+				bPlayerSelected = true;	
+			}
 			bUpdate = true;
-			
-			
 		}
-		
-		/**/
 		
 		if(typeof viewportMap[_GRID_X][_GRID_Y] != 'undefined'){
 			
+			// MOVE
 			if( viewportMap[_GRID_X][_GRID_Y].type != _TILE_TREE 
 				&& viewportMap[_GRID_X][_GRID_Y].type != _TILE_WATER
 				&& viewportMovesMap[_GRID_X][_GRID_Y] == 2
 				&& bMvtEnable 
 				&& notPlayerGrid(_GRID_X, _GRID_Y) ){
 				
-					//currentPlayerIndex = viewportMap[_GRID_X][_GRID_Y].index;
-					
 					var nIndex = 0;
 					var maxIndex = _MAP_PIXEL_DIMENSION*_MAP_PIXEL_DIMENSION;
 					
@@ -199,14 +200,53 @@ function handleClick(x, y) {
 							currentPlayerIndex = nIndex;
 					}
 					
-					console.dir(viewportMap[_GRID_X][_GRID_Y]);
+					//console.dir(viewportMap[_GRID_X][_GRID_Y]);
 					bMvtEnable = false;
 					bPlayerSelected = false;
 					bUpdate = true;
 			}
 			
+			
+			// CUT WOOD
+			if( viewportMap[_GRID_X][_GRID_Y].type == _TILE_TREE 
+				&& viewportWoodAxeMap[_GRID_X][_GRID_Y] == 2
+				&& bWoodHaxe 
+				&& notPlayerGrid(_GRID_X, _GRID_Y) ){
+					
+					if( _TILES_MAP[viewportMap[_GRID_X][_GRID_Y].x][viewportMap[_GRID_X][_GRID_Y].y].wood > 0 ) {
+						_TILES_MAP[viewportMap[_GRID_X][_GRID_Y].x][viewportMap[_GRID_X][_GRID_Y].y].wood--;
+					}
+					
+			}
+			
 		}
 		
+		
+		
+		for (key in buttons) {	
+			if( _GRID_X >= buttons[key].position.x 
+				&& _GRID_X < buttons[key].position.x + (buttons[key].width) 
+				&& _GRID_Y >= buttons[key].position.y 
+				&& _GRID_Y < buttons[key].position.y + (buttons[key].height) ){
+					
+				if( key == 'move' && bPlayerSelected ){
+					// Disable other actions
+					bWoodHaxe = false;
+					
+					bMvtEnable = !bMvtEnable;
+					bUpdate = true;
+				}
+				
+				if( key == 'axe' && bPlayerSelected ){
+					// Disable other actions
+					bMvtEnable = false;
+					
+					bWoodHaxe = !bWoodHaxe;
+					bUpdate = true;
+				}
+
+			}
+		}
 		
 		
 		/*if( !bMvtEnable ){

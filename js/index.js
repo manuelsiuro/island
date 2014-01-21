@@ -13,16 +13,27 @@ var _MAP_PIXEL_DIMENSION = 64,
 	bufferFovContext = bufferFovCanvas.getContext('2d'),
 	bufferMovesCanvas = document.createElement('canvas'),
 	bufferMovesContext = bufferMovesCanvas.getContext('2d'),
+	
+	bufferWoodAxeCanvas = document.createElement('canvas'),
+	bufferWoodAxeContext = bufferWoodAxeCanvas.getContext('2d'),
+	
 	panelCanvas = document.createElement('canvas'),
 	panelContext = panelCanvas.getContext('2d'),
+	
+	
 	viewportTileSize = 16,
 	viewportRowsCols = 9,
 	viewportOffsetRowsCols = viewportRowsCols-1,
-	zoom = viewportTileSize*2,
+	zoomOffset = 4,
+	zoomFontOffset = zoomOffset*0.5,
+	zoom = viewportTileSize*zoomOffset,
+	fontSize = 14,
+	pannelFontSize = zoomFontOffset * fontSize,
 	viewportMap = [],
 	viewportCollisionMap = null,
 	viewportFovMap = null,
 	viewportMovesMap = null,
+	viewportWoodAxeMap = null,
 	_TILE_WATER = 0,
 	_TILE_SAND = 1,
 	_TILE_GRASS = 2,
@@ -33,6 +44,8 @@ var _MAP_PIXEL_DIMENSION = 64,
 	_TILE_PLAYER = 10,
 	_TILE_MOVES = 11,
 	_TILE_SELECTED = 12,
+	_TILE_AXE = 13,
+	_TILE_ATTACK = 14,
 	_TILE_PANEL = 16,
 	rangeWaterStart = 0,
 	rangeWaterEnd = 0,
@@ -58,6 +71,7 @@ var _MAP_PIXEL_DIMENSION = 64,
 	bMvtEnable = false,
 	bUiEnable = true,
 	bPlayerSelected = false,
+	bWoodHaxe = false,
 	isIpad = navigator.userAgent.match(/iPad/i) != null,
 	isIphone = navigator.userAgent.match(/iPhone/i) != null,
 	isAndroid = navigator.userAgent.match(/Android/i) != null,
@@ -96,6 +110,14 @@ function resizeGame() {
 		
 		gameArea.style.marginTop = (-newHeight / 2) + 'px';
 		gameArea.style.marginLeft = (-newWidth / 2) + 'px';
+		
+		//zoomOffset
+		if(newWidth<= 320){
+			zoomOffset = 2,
+			zoomFontOffset = zoomOffset*0.5,
+			pannelFontSize = zoomFontOffset * fontSize,
+			zoom = viewportTileSize*zoomOffset;
+		}
 		
 		var gameCanvas = document.getElementById('viewport');
 		gameCanvas.width = newWidth;
@@ -140,6 +162,9 @@ function init(){
 	panelCanvas.width = _SCREEN_WIDTH;
 	panelCanvas.height = _SCREEN_HEIGHT;
 	
+	bufferWoodAxeCanvas.width = _SCREEN_WIDTH;
+	bufferWoodAxeCanvas.height = _SCREEN_HEIGHT;
+	
 	panelContext.font = '14px silkscreennormal, cursive';
 		
 	window.scrollTo( 0, 1 );
@@ -152,16 +177,29 @@ function terrainGeneration(){
 	generateMap();
 	
 	buttons['move'] = {				
-		sprite: makeButton({x:5, y:12, width:2, height:1, text:'MOVE'}),
-		width: 2,
+		sprite: makeButton({x:5, y:15, width:1, height:1, icon: _TILE_MOVES}),
+		width: 1,
 		height: 1,
 		position: {
-			x: 5,
-			y: 12
+			x: 0,
+			y: 9
 		},
 		action: 'move',
 		value: 'move'
 	};
+	
+	buttons['axe'] = {				
+		sprite: makeButton({x:5, y:15, width:1, height:1, icon: _TILE_AXE}),
+		width: 1,
+		height: 1,
+		position: {
+			x: 1,
+			y: 9
+		},
+		action: 'axe',
+		value: 'axe'
+	};
+	
 }
 
 function generateMap(){
@@ -185,7 +223,6 @@ function gameLoop() {
 		
 		if(bUpdate){
 			update();
-			//redraw();
 			bUpdate = false;
 		}
 		
@@ -205,15 +242,30 @@ function gameLoop() {
 function update(){
 	
 	// Update viewport data
-	viewportMap = getViewportMap(currentPlayerIndex),
-	updateViewPortCollisionMap(),
-	updateViewPortFOV((viewportOffsetRowsCols*0.5), (viewportOffsetRowsCols*0.5)),
-	updateViewPortMoves((viewportOffsetRowsCols*0.5), (viewportOffsetRowsCols*0.5));
-	
+	viewportMap = getViewportMap(currentPlayerIndex);
+	updateViewPortCollisionMap();
+		
+	if(bFovEnable)
+		updateViewPortFOV((viewportOffsetRowsCols*0.5), (viewportOffsetRowsCols*0.5));
+		
+	if(bMvtEnable)
+		updateViewPortMoves((viewportOffsetRowsCols*0.5), (viewportOffsetRowsCols*0.5));
+		
+	if(bWoodHaxe)
+		updateViewPortWoodAxe((viewportOffsetRowsCols*0.5), (viewportOffsetRowsCols*0.5));
+		
 	// Draw on buffer canvas
-	drawBufferCanvasMap(),
-	drawBufferFOV(),
-	drawBufferMoves(),
+	drawBufferCanvasMap();
+	
+	if(bFovEnable)
+		drawBufferFOV();
+		
+	if(bMvtEnable)
+		drawBufferMoves();
+		
+	if(bWoodHaxe)
+		drawBufferWoodAxe();
+	
 	drawBufferPanel();
 }
 
@@ -228,9 +280,7 @@ var _MAP_OFFSET_Y = 0;
 
 function drawViewPortMap(){
 	
-	//_MAP_OFFSET_X+=5;
-	//_MAP_OFFSET_Y+=5;
-	
+	// MAP
 	viewportCtx.clearRect(0, 0, viewportCanvas.height, viewportCanvas.width);
 
 	viewportCtx.drawImage(bufferMapCanvas, _MAP_OFFSET_X, _MAP_OFFSET_Y);
@@ -240,13 +290,19 @@ function drawViewPortMap(){
 		
 	if(bMvtEnable)
 		viewportCtx.drawImage(bufferMovesCanvas,  _MAP_OFFSET_X, _MAP_OFFSET_Y);
+		
+	if(bWoodHaxe)
+		viewportCtx.drawImage(bufferWoodAxeCanvas,  _MAP_OFFSET_X, _MAP_OFFSET_Y);
 	
+	// UI --
 	if(bUiEnable)	
 		viewportCtx.drawImage(panelCanvas,  _MAP_OFFSET_X, _MAP_OFFSET_Y);
 		
-		
-	viewportCtx.drawImage(buttons['move'].sprite, buttons['move'].position.x*zoom, buttons['move'].position.y*zoom, buttons['move'].width*zoom, buttons['move'].height*zoom);
-	
+	// BUTTON
+	if(bPlayerSelected){
+		viewportCtx.drawImage(buttons['move'].sprite, buttons['move'].position.x*zoom, buttons['move'].position.y*zoom, buttons['move'].width*zoom, buttons['move'].height*zoom);
+		viewportCtx.drawImage(buttons['axe'].sprite, buttons['axe'].position.x*zoom, buttons['axe'].position.y*zoom, buttons['axe'].width*zoom, buttons['axe'].height*zoom);
+	}
 		
 	// Collision and Astar
 	/*if(viewportCollisionMap != null && currentPath.length > 0 && frame == 0){
@@ -280,20 +336,20 @@ function drawBufferPanel(){
 
 	var _X = viewportOffsetRowsCols*0.5,
 		_Y = viewportOffsetRowsCols*0.5,
-		lineHeight 		= 15,
-		labelMarginLeft = 15,
-		dataMarginLeft 	= 120,
-		startline 		= zoom*viewportRowsCols+30;
+		lineHeight 		= 15*zoomFontOffset,
+		labelMarginLeft = 15*zoomFontOffset,
+		dataMarginLeft 	= 120*zoomFontOffset,
+		startline 		= zoom*viewportRowsCols+(45*zoomFontOffset);
 	
 	panelContext.clearRect(0, 0, panelCanvas.height, panelCanvas.width);
 	panelContext.drawImage(sprites[_TILE_PANEL], 
 		0, // x
 		zoom*viewportRowsCols, // y
 		zoom*viewportRowsCols, // width
-		160	// height
+		160 * (zoomOffset*0.5)	// height
 		);
-
-	panelContext.font = '14px silkscreennormal, cursive';
+		
+	panelContext.font = pannelFontSize+'px silkscreennormal, cursive';
 	panelContext.fillStyle = 'black';
 	
 	panelContext.fillText("TILEMAP", labelMarginLeft, startline);
@@ -327,6 +383,24 @@ function drawBufferPanel(){
 	/**/panelContext.fillText("Grid", labelMarginLeft, startline);
 	panelContext.fillText(_GRID_X + ',' + _GRID_Y, dataMarginLeft, startline);
 	startline += lineHeight;
+}
+
+function drawBufferWoodAxe(){
+	
+	if(bWoodHaxe && viewportWoodAxeMap != null){
+		
+		bufferWoodAxeContext.clearRect(0, 0, viewportCanvas.height, viewportCanvas.width);
+		
+		for(var i = 0; i < viewportWoodAxeMap.length; i++){
+			for(var j = 0; j < viewportWoodAxeMap[i].length; j++){
+				if(viewportWoodAxeMap[i][j]==2){
+					bufferWoodAxeContext.drawImage(sprites[_TILE_AXE], i*zoom, j*zoom, zoom, zoom);
+				}
+			}
+		}
+		
+	}
+	
 }
 
 function drawBufferMoves(){
@@ -458,7 +532,16 @@ function convertToTiledMap(mapData){
 
 function setRandomStartPoint(){
 	var l = (_TILES_MAP.length)-1;
-	currentPlayerIndex = getRandomInt(0, l*l);
+	var randStart = getRandomInt(0, l*l);
+	var p = getCoordsFromIndex(randStart);
+	
+	if( _TILES_MAP[p.x][p.y].type != 2){
+		_TILES_MAP[p.x][p.y].type = 2;
+	}
+	
+	currentPlayerIndex = randStart;;
+	
+	
 }
 
 function drawViewportPlayer(x,y,alpha){
@@ -539,7 +622,7 @@ function makeSprite(x,y, flip){
 	
 	m_context.drawImage(sprites_img, -x*viewportTileSize, -y*viewportTileSize);
 
-	if(flip){
+	/*if(flip){
 		var m_canvas2 = document.createElement('canvas');
 			m_canvas2.width = viewportTileSize;
 			m_canvas2.height = viewportTileSize;
@@ -548,8 +631,11 @@ function makeSprite(x,y, flip){
 			m_context2.scale(-1,1)
 			m_context2.drawImage(m_canvas, -viewportTileSize, 0);
 
-		return m_canvas2;
-	}
+		return resize(m_canvas2, zoomOffset);
+	}*/
+	
+	m_canvas = resize(m_canvas, zoomOffset);
+	
 	return m_canvas;
 }
 
@@ -570,30 +656,45 @@ function makeButton(args){
 	var m_context = m_canvas.getContext('2d');
 		m_context.drawImage(sprites_img, -args.x*viewportTileSize, -args.y*viewportTileSize);
 	
-	if(args.sprite_over){
-		m_context.drawImage(sprites[args.sprite_over][0], ((m_canvas.width*0.5)<<0)-16, ((m_canvas.height*0.5)<<0)-16);        	
+	if(args.icon){
+		var sprX = 0,
+			sprY = 0;
+		
+		if(args.icon == _TILE_MOVES)
+			sprX = 4,
+			sprY = 0;
+		
+		if(args.icon == _TILE_AXE)
+			sprX = 6,
+			sprY = 3;
+		
+			m_context.drawImage(sprites_img, -sprX*viewportTileSize, -sprY*viewportTileSize);
+			
+		
 	}
 
 	if(args.text || args.label){
-		var font_size = '10px',
+		var font_size = 10,
 			color = 'white',
 			text = args.text,
 			x = (m_canvas.width*0.5)<<0,
 			y = (m_canvas.height*0.5)<<0;
 
-		if(args.label){
+		/*if(args.label){
 			font_size = '10px';
 			color = 'white';
 			text = args.label;
 			y = (m_canvas.height*0.8)<<0;
-		}
+		}*/
 
 		m_context.fillStyle = color;        	
-		m_context.font = font_size+' silkscreennormal, cursive';
+		m_context.font = font_size+'px silkscreennormal, cursive';
 		m_context.textBaseline = 'middle';
 		m_context.textAlign = 'center';
 		m_context.fillText(text, x, y);
 	}
+	
+	m_canvas = resize(m_canvas, zoomOffset);
 	
 	return m_canvas;
 }
@@ -678,13 +779,37 @@ function updateViewPortMoves(x,y){
 		}
 	}
 	
-	viewportMovesMap[plx][ply] = 2;
-	
 	updateBufferViewObject(viewportMovesMap, plx, ply, _MVT);
 }
 
 function getViewPortMovesMap(){
 	return 	viewportMovesMap;
+}
+
+function updateViewPortWoodAxe(x,y){
+	
+	var plx = x,
+		ply = y;
+		
+	viewportWoodAxeMap = create2DArray(viewportRowsCols, viewportRowsCols);
+	
+	// check Top
+	if( viewportMap[x][y-1].type == _TILE_TREE ){
+		viewportWoodAxeMap[x][y-1] = 2;
+	}
+	// check Right
+	if( viewportMap[x+1][y].type == _TILE_TREE ){
+		viewportWoodAxeMap[x+1][y] = 2;
+	}
+	// check Bottom
+	if( viewportMap[x][y+1].type == _TILE_TREE ){
+		viewportWoodAxeMap[x][y+1] = 2;
+	}
+	// check Left
+	if( viewportMap[x-1][y].type == _TILE_TREE ){
+		viewportWoodAxeMap[x-1][y] = 2;
+	}
+	
 }
 
 function updateBufferViewObject(map, x, y, r){
@@ -706,6 +831,49 @@ function updateBufferViewObject(map, x, y, r){
 /* ------------------------------------------------------------------------------------------------------------------------------------------- */
 /* ------------------------------------------------------------------------------------------------------------------------------------------- */
 /* ------------------------------------------------------------------------------------------------------------------------------------------- */
+/**
+ 	* resize : Takes an image and a scaling factor and returns the scaled image and copied, pixel by pixel into another offscreen canvas with the new size.
+	* @param {object} img
+	* @param {int} scale
+	* @param {boolean} alpha
+	* @return {object} scaled  'canvas'
+	*/
+    function resize( img, scale ) {
+		
+        var widthScaled = img.width * scale;
+        var heightScaled = img.height * scale;
+
+        var orig = document.createElement('canvas');
+        orig.width = img.width;
+        orig.height = img.height;
+        var origCtx = orig.getContext('2d');
+        origCtx.drawImage(img, 0, 0);
+        var origPixels = origCtx.getImageData(0, 0, img.width, img.height);
+
+        var scaled = document.createElement('canvas');
+        scaled.width = widthScaled;
+        scaled.height = heightScaled;
+        var scaledCtx = scaled.getContext('2d');
+        var scaledPixels = scaledCtx.getImageData( 0, 0, widthScaled, heightScaled );
+
+        for( var y = 0; y < heightScaled; y++ ) {
+            for( var x = 0; x < widthScaled; x++ ) {
+                var index = (Math.floor(y / scale) * img.width + Math.floor(x / scale)) * 4;
+                var indexScaled = (y * widthScaled + x) * 4;
+                scaledPixels.data[ indexScaled ] = origPixels.data[ index ];
+                scaledPixels.data[ indexScaled+1 ] = origPixels.data[ index+1 ];
+                scaledPixels.data[ indexScaled+2 ] = origPixels.data[ index+2 ];
+                scaledPixels.data[ indexScaled+3 ] = origPixels.data[ index+3 ];
+            }
+        }
+        scaledCtx.putImageData( scaledPixels, 0, 0 );
+        return scaled;
+    }
+/* ------------------------------------------------------------------------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------------------------------- */
+/* ------------------------------------------------------------------------------------------------------------------------------------------- */
+
+
 $( document ).ready(function() {
 	init();
 });
