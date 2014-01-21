@@ -1,20 +1,19 @@
 /* ------------------------------------------------------------------------------------------------------------------------------------------- */
 /* ------------------------------------------------------------------------------------------------------------------------------------------- */
 /* ------------------------------------------------------------------------------------------------------------------------------------------- */
-var Tile = function(type){
+var Player = function(){
 	
 	this.index = 0;
-	this.visited = false;
+	this.alive = true;
 	this.x = 0;
 	this.y = 0;
-	this.colorFill = {r : 0, g : 0, b : 0};
 	this.type = type;
-	//this.wood = getRandomInt(0, 30);
-	this.wood = Math.random()*4<<0;
-	this.rock = Math.random()*30<<0;
-	this.cuivre = Math.random()*30<<0;
-	this.fer = Math.random()*30<<0;
-	this.or = Math.random()*10<<0;
-	this.population = Math.random()*100<<0;
+	this.moves = 2;
+	
+	this.wood = 0;
+	this.rock = ;
+	this.cuivre = 0;
+	this.fer = 0;
+	this.or = 0;
 
 }

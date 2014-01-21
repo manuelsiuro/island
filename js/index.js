@@ -39,7 +39,9 @@ var _MAP_PIXEL_DIMENSION = 64,
 	_TILE_GRASS = 2,
 	_TILE_GRASS_MEDIUM = 3,
 	_TILE_GRASS_HARD = 4,
-	_TILE_TREE = 5,
+	_TILE_TREE = 20,
+	_TILE_TREE_2 = 21,
+	_TILE_TREE_3 = 22,
 	_TILE_EMPTY = 6,
 	_TILE_PLAYER = 10,
 	_TILE_MOVES = 11,
@@ -86,7 +88,8 @@ var _MAP_PIXEL_DIMENSION = 64,
 	sprites_img = document.createElement("img"),
 	_GRID_X = viewportOffsetRowsCols*0.5,
 	_GRID_Y = viewportOffsetRowsCols*0.5,
-	buttons = [];
+	buttons = [],
+	player = new Player();
 							  
 /* ------------------------------------------------------------------------------------------------------------------------------------------- */
 /* ------------------------------------------------------------------------------------------------------------------------------------------- */
@@ -471,7 +474,7 @@ function getTileName(i){
 		name = "GRASS_MEDIUM";
 	} else if( i == _TILE_GRASS_HARD ){
 		name = "GRASS_HARD";
-	} else if( i == _TILE_TREE ){
+	} else if( i == _TILE_TREE || i == _TILE_TREE_2 || i == _TILE_TREE_3 ){
 		name = "TREE";
 	}
 	
@@ -493,6 +496,8 @@ function convertToTiledMap(mapData){
 		rangeRockEnd 		= 0.9,
 		rangeSnowStart 		= rangeRockEnd,
 		rangeSnowEnd 		= 1.0;
+		
+		var tilesTree = [_TILE_TREE, _TILE_TREE_2, _TILE_TREE_3];
 	
 	for(x = 0; x < _MAP_PIXEL_DIMENSION; x++){
 		for(y = 0; y < _MAP_PIXEL_DIMENSION; y++){
@@ -516,7 +521,8 @@ function convertToTiledMap(mapData){
 				} else if (data > rangeRockStart && data <= rangeRockEnd) {
 					tempTile.type = _TILE_GRASS_HARD;
 				} else if (data > rangeSnowStart) {
-					tempTile.type = _TILE_TREE;
+					var r = Math.random()*3<<0;
+					tempTile.type = tilesTree[r];
 				}
 				
 				tiles[x][y] = tempTile;
@@ -721,6 +727,8 @@ function updateViewPortCollisionMap(){
 		for(var j = 0; j < viewportRowsCols; j++){
 			if( viewportMap[i][j].type == _TILE_WATER 
 				|| viewportMap[i][j].type == _TILE_TREE
+				|| viewportMap[i][j].type == _TILE_TREE_2
+				|| viewportMap[i][j].type == _TILE_TREE_3
 				|| viewportMap[i][j].type == _TILE_EMPTY ){
 				viewportCollisionMap[i][j] = 1;
 			} else {
@@ -771,6 +779,8 @@ function updateViewPortMoves(x,y){
 		for(var j = 0; j < viewportRowsCols; j++){
 			if( viewportMap[i][j].type == _TILE_WATER 
 				|| viewportMap[i][j].type == _TILE_TREE
+				|| viewportMap[i][j].type == _TILE_TREE_2
+				|| viewportMap[i][j].type == _TILE_TREE_3
 				|| viewportMap[i][j].type == _TILE_EMPTY ){
 				viewportMovesMap[i][j] = 1;
 			} else {
@@ -794,19 +804,31 @@ function updateViewPortWoodAxe(x,y){
 	viewportWoodAxeMap = create2DArray(viewportRowsCols, viewportRowsCols);
 	
 	// check Top
-	if( viewportMap[x][y-1].type == _TILE_TREE ){
+	if( viewportMap[x][y-1].type == _TILE_TREE
+		|| viewportMap[x][y-1].type == _TILE_TREE_2
+		|| viewportMap[x][y-1].type == _TILE_TREE_3
+	){
 		viewportWoodAxeMap[x][y-1] = 2;
 	}
 	// check Right
-	if( viewportMap[x+1][y].type == _TILE_TREE ){
+	if( viewportMap[x+1][y].type == _TILE_TREE 
+		|| viewportMap[x+1][y].type == _TILE_TREE_2 
+		|| viewportMap[x+1][y].type == _TILE_TREE_3 
+	){
 		viewportWoodAxeMap[x+1][y] = 2;
 	}
 	// check Bottom
-	if( viewportMap[x][y+1].type == _TILE_TREE ){
+	if( viewportMap[x][y+1].type == _TILE_TREE 
+		|| viewportMap[x][y+1].type == _TILE_TREE_2 
+		|| viewportMap[x][y+1].type == _TILE_TREE_3 
+	){
 		viewportWoodAxeMap[x][y+1] = 2;
 	}
 	// check Left
-	if( viewportMap[x-1][y].type == _TILE_TREE ){
+	if( viewportMap[x-1][y].type == _TILE_TREE 
+		|| viewportMap[x-1][y].type == _TILE_TREE_2 
+		|| viewportMap[x-1][y].type == _TILE_TREE_3 
+	){
 		viewportWoodAxeMap[x-1][y] = 2;
 	}
 	

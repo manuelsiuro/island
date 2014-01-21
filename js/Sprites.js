@@ -12,6 +12,9 @@ sprites_img.onload = function(){
 	sprites[_TILE_GRASS_MEDIUM] = makeSprite(4,1, false);
 	sprites[_TILE_GRASS_HARD] = makeSprite(3,1, false);
 	sprites[_TILE_TREE] = makeSprite(1,6, false);
+	sprites[_TILE_TREE_3] = makeSprite(2,6, false);
+	sprites[_TILE_TREE_2] = makeSprite(3,6, false);
+	
 	sprites[_TILE_EMPTY] = makeSprite(7,0, false);
 	
 	sprites[7] = makeSprite(0,0, false); // water color

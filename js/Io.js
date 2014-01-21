@@ -149,6 +149,8 @@ function handleClick(x, y) {
 			
 			// MOVE
 			if( viewportMap[_GRID_X][_GRID_Y].type != _TILE_TREE 
+				&& viewportMap[_GRID_X][_GRID_Y].type != _TILE_TREE_2 
+				&& viewportMap[_GRID_X][_GRID_Y].type != _TILE_TREE_3 
 				&& viewportMap[_GRID_X][_GRID_Y].type != _TILE_WATER
 				&& viewportMovesMap[_GRID_X][_GRID_Y] == 2
 				&& bMvtEnable 
@@ -208,15 +210,24 @@ function handleClick(x, y) {
 			
 			
 			// CUT WOOD
-			if( viewportMap[_GRID_X][_GRID_Y].type == _TILE_TREE 
+			if( ( viewportMap[_GRID_X][_GRID_Y].type == _TILE_TREE 
+				|| viewportMap[_GRID_X][_GRID_Y].type == _TILE_TREE_2 
+				|| viewportMap[_GRID_X][_GRID_Y].type == _TILE_TREE_3 ) 
 				&& viewportWoodAxeMap[_GRID_X][_GRID_Y] == 2
 				&& bWoodHaxe 
 				&& notPlayerGrid(_GRID_X, _GRID_Y) ){
 					
 					if( _TILES_MAP[viewportMap[_GRID_X][_GRID_Y].x][viewportMap[_GRID_X][_GRID_Y].y].wood > 0 ) {
+						
 						_TILES_MAP[viewportMap[_GRID_X][_GRID_Y].x][viewportMap[_GRID_X][_GRID_Y].y].wood--;
+						bWoodHaxe = false;
+						
+						if(_TILES_MAP[viewportMap[_GRID_X][_GRID_Y].x][viewportMap[_GRID_X][_GRID_Y].y].wood==0){
+						
+							_TILES_MAP[viewportMap[_GRID_X][_GRID_Y].x][viewportMap[_GRID_X][_GRID_Y].y].type = _TILE_GRASS;
+							bUpdate = true;
+						}
 					}
-					
 			}
 			
 		}
