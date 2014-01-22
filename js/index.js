@@ -663,6 +663,7 @@ function getCoordsFromIndex(index){
 function getViewportMap(index){
 	
 	console.log(index);
+	console.dir(players[selectedPlayer]);
 
 	var pos = getCoordsFromIndex(index),
 		offset = viewportOffsetRowsCols*0.5,
@@ -673,6 +674,8 @@ function getViewportMap(index){
 		aView = create2DArray(viewportRowsCols, viewportRowsCols),
 		_X = 0,
 		_Y = 0;
+		
+	console.dir(pos);
 	
 	for(var x = ltx; x < mX; x++){
 
