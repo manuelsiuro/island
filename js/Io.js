@@ -23,38 +23,38 @@ function onUpCallback(event){
 	//console.log("KEY_UP : " + event.keyCode);
 	
 	var maxIndex = _MAP_PIXEL_DIMENSION*_MAP_PIXEL_DIMENSION;
-	var save = currentPlayerIndex;
+	var save = players[selectedPlayer].map_index;
 	var nIndex = 0;
 	
 	if( event.keyCode == 38 ){
 		// UP
-		nIndex = currentPlayerIndex - _MAP_PIXEL_DIMENSION;
+		nIndex = players[selectedPlayer].map_index - _MAP_PIXEL_DIMENSION;
 		if(nIndex>=0)
-			currentPlayerIndex = nIndex;
+			players[selectedPlayer].map_index = nIndex;
 			
 		bUpdate = true;
 		
 	} else if( event.keyCode == 39 ){
 		// RIGHT
-		nIndex = ++currentPlayerIndex;
+		nIndex = ++players[selectedPlayer].map_index;
 		if(nIndex <= maxIndex)
-			currentPlayerIndex = nIndex;
+			players[selectedPlayer].map_index = nIndex;
 			
 		bUpdate = true;
 
 	} else if( event.keyCode == 40 ){
 		// DOWN
-		nIndex = currentPlayerIndex + _MAP_PIXEL_DIMENSION;
+		nIndex = players[selectedPlayer].map_index + _MAP_PIXEL_DIMENSION;
 		if(nIndex <= maxIndex)
-			currentPlayerIndex = nIndex;
+			players[selectedPlayer].map_index = nIndex;
 			
 		bUpdate = true;
 
 	} else if( event.keyCode == 37 ){
 		// LEFT
-		nIndex = --currentPlayerIndex;
+		nIndex = --players[selectedPlayer].map_index;
 		if(nIndex>=0)
-			currentPlayerIndex = nIndex;
+			players[selectedPlayer].map_index = nIndex;
 			
 		bUpdate = true;
 		
@@ -163,20 +163,20 @@ function handleClick(x, y) {
 					if( _GRID_Y < viewportOffsetRowsCols*0.5) {
 						
 						var nline = (viewportOffsetRowsCols*0.5) - _GRID_Y;
-							nIndex = currentPlayerIndex - (_MAP_PIXEL_DIMENSION*nline);
+							nIndex = players[selectedPlayer].map_index - (_MAP_PIXEL_DIMENSION*nline);
 							
 						if(nIndex>=0)
-							currentPlayerIndex = nIndex;
+							players[selectedPlayer].map_index = nIndex;
 					}
 					
 					// DOWN
 					if( _GRID_Y > viewportOffsetRowsCols*0.5) {
 						
 						var nline = _GRID_Y - (viewportOffsetRowsCols*0.5);
-							nIndex = currentPlayerIndex + (_MAP_PIXEL_DIMENSION*nline);
+							nIndex = players[selectedPlayer].map_index + (_MAP_PIXEL_DIMENSION*nline);
 						
 						if(nIndex <= maxIndex)
-							currentPlayerIndex = nIndex;
+							players[selectedPlayer].map_index = nIndex;
 						
 					}
 					
@@ -185,10 +185,10 @@ function handleClick(x, y) {
 						
 						
 						var nline = (viewportOffsetRowsCols*0.5) - _GRID_X;
-							nIndex = currentPlayerIndex-nline;
+							nIndex = players[selectedPlayer].map_index-nline;
 						
 						if(nIndex>=0)
-							currentPlayerIndex = nIndex;
+							players[selectedPlayer].map_index = nIndex;
 						
 					}
 					
@@ -196,15 +196,15 @@ function handleClick(x, y) {
 					if( _GRID_X > viewportOffsetRowsCols*0.5) {
 						
 						var nline = _GRID_X - (viewportOffsetRowsCols*0.5);
-							nIndex = currentPlayerIndex+nline;
+							nIndex = players[selectedPlayer].map_index+nline;
 						
 						if(nIndex <= maxIndex)
-							currentPlayerIndex = nIndex;
+							players[selectedPlayer].map_index = nIndex;
 					}
 					
 					//console.dir(viewportMap[_GRID_X][_GRID_Y]);
 					bMvtEnable = false;
-					bPlayerSelected = false;
+					//bPlayerSelected = false;
 					bUpdate = true;
 			}
 			
@@ -220,13 +220,25 @@ function handleClick(x, y) {
 					if( _TILES_MAP[viewportMap[_GRID_X][_GRID_Y].x][viewportMap[_GRID_X][_GRID_Y].y].wood > 0 ) {
 						
 						_TILES_MAP[viewportMap[_GRID_X][_GRID_Y].x][viewportMap[_GRID_X][_GRID_Y].y].wood--;
-						bWoodHaxe = false;
+						players[selectedPlayer].wood++;
+						//bWoodHaxe = false;
 						
 						if(_TILES_MAP[viewportMap[_GRID_X][_GRID_Y].x][viewportMap[_GRID_X][_GRID_Y].y].wood==0){
-						
 							_TILES_MAP[viewportMap[_GRID_X][_GRID_Y].x][viewportMap[_GRID_X][_GRID_Y].y].type = _TILE_GRASS;
+							bWoodHaxe = false;
 							bUpdate = true;
 						}
+						
+						if(_TILES_MAP[viewportMap[_GRID_X][_GRID_Y].x][viewportMap[_GRID_X][_GRID_Y].y].wood==1){
+							_TILES_MAP[viewportMap[_GRID_X][_GRID_Y].x][viewportMap[_GRID_X][_GRID_Y].y].type = _TILE_TREE;
+							bUpdate = true;
+						}
+						
+						if(_TILES_MAP[viewportMap[_GRID_X][_GRID_Y].x][viewportMap[_GRID_X][_GRID_Y].y].wood==2){
+							_TILES_MAP[viewportMap[_GRID_X][_GRID_Y].x][viewportMap[_GRID_X][_GRID_Y].y].type = _TILE_TREE_2;
+							bUpdate = true;
+						}
+						
 					}
 			}
 			
@@ -255,7 +267,32 @@ function handleClick(x, y) {
 					bWoodHaxe = !bWoodHaxe;
 					bUpdate = true;
 				}
+				
+				if( key == 'btn_right' ){
+					
+					var t = selectedPlayer+1;
+					
+					if( t < players.length ) {
+						selectedPlayer++;
+						bUpdate = true;
+					} else {
+						selectedPlayer = 0;
+						bUpdate = true;
+					}
+				}
+				
+				if( key == 'btn_left' ){
 
+					var t = selectedPlayer-1;
+					
+					if( t >= 0 ) {
+						selectedPlayer--;
+						bUpdate = true;
+					} else {
+						selectedPlayer = players.length-1;
+						bUpdate = true;
+					}
+				}
 			}
 		}
 		

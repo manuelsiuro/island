@@ -7,6 +7,7 @@ var Player = function(type){
 	this.alive = true;
 	this.x = 0;
 	this.y = 0;
+	this.map_index = 0;
 	this.type = type;
 	this.moves = 2;
 	
