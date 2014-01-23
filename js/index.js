@@ -13,13 +13,10 @@ var _MAP_PIXEL_DIMENSION = 64,
 	bufferFovContext = bufferFovCanvas.getContext('2d'),
 	bufferMovesCanvas = document.createElement('canvas'),
 	bufferMovesContext = bufferMovesCanvas.getContext('2d'),
-	
 	bufferWoodAxeCanvas = document.createElement('canvas'),
 	bufferWoodAxeContext = bufferWoodAxeCanvas.getContext('2d'),
-
 	bufferPlayersCanvas = document.createElement('canvas'),
 	bufferPlayersContext = bufferPlayersCanvas.getContext('2d'),
-	
 	panelCanvas = document.createElement('canvas'),
 	panelContext = panelCanvas.getContext('2d'),
 	viewportTileSize = 16,
@@ -89,7 +86,6 @@ var _MAP_PIXEL_DIMENSION = 64,
 	useTouch = isIpad | isIphone | isAndroid,
 	_SCREEN_WIDTH = 320,
 	_SCREEN_HEIGHT = 240,
-	/*currentPlayerIndex = 0,*/
 	pathStart = [viewportRowsCols,viewportRowsCols],
 	pathEnd = [0,0],
 	currentPath = [],
@@ -105,6 +101,7 @@ var _MAP_PIXEL_DIMENSION = 64,
 /* ------------------------------------------------------------------------------------------------------------------------------------------- */
 /* ------------------------------------------------------------------------------------------------------------------------------------------- */
 function resizeGame() {
+	
 		var gameArea = document.getElementById('viewport');
 		var widthToHeight = 2 / 3;
 		var newWidth = window.innerWidth;
@@ -141,27 +138,11 @@ window.addEventListener('resize', resizeGame, false);
 window.addEventListener('orientationchange', resizeGame, false);
 		
 function init(){
+	
 	resizeGame();
 	
-	/*
-    btnSaveMap.onclick = function(){
-        var strDataURI = viewportCanvas.toDataURL();
-        window.open(strDataURI);
-    };
-	
-	$("#output").on('click', '.plus-population', function(e){
-		var idx = $("#tile-index").html();
-		_TILES_MAP[idx].population++;
-	});*/
-	
-	/*
-	_SCREEN_WIDTH = $(window).width(),
-	_SCREEN_HEIGHT = (useTouch) ? screen.height : $(window).height();
-	*/
 	_SCREEN_WIDTH = viewportCanvas.width,
 	_SCREEN_HEIGHT = viewportCanvas.height;
-	//viewportCanvas.width = _SCREEN_WIDTH;
-	//viewportCanvas.height = _SCREEN_HEIGHT;
 	
 	bufferMapCanvas.width = _SCREEN_WIDTH;
 	bufferMapCanvas.height = _SCREEN_HEIGHT;
@@ -191,7 +172,7 @@ function init(){
 
 function terrainGeneration(){
 	
-	
+
 	buttons['move'] = {				
 		sprite: makeButton({x:5, y:15, width:1, height:1, icon: _TILE_MOVES}),
 		width: 1,
@@ -215,8 +196,6 @@ function terrainGeneration(){
 		action: 'axe',
 		value: 'axe'
 	};
-	
-	
 	
 	buttons['btn_left'] = {				
 		sprite: makeButton({x:6, y:15, width:1, height:1, flip: true}),
@@ -242,11 +221,9 @@ function terrainGeneration(){
 		value: 'btn_right'
 	};
 	
-	for(var i = 0; i< 4; i++){
+	for(var i = 0; i< 50; i++){
 		players[i] = new Player(i);
 	}
-	
-	
 	
 	generateMap();
 	
@@ -260,9 +237,7 @@ function generateMap(){
 	for(var i =0; i< players.length; i++){
 		setRandomStartPoint(i);
 	}
-	
-	/*currentPlayerIndex = players[selectedPlayer].map_index;*/
-	
+
 	gameLoop();
 }
 
@@ -297,10 +272,8 @@ function gameLoop() {
 function update(){
 	
 	// Update viewport data
-	viewportMap = getViewportMap(players[selectedPlayer].map_index);
+	viewportMap = getViewportMap(players[selectedPlayer]);
 	//updateViewPortCollisionMap();
-	
-	updateViewPortPlayers();
 		
 	if(bFovEnable)
 		updateViewPortFOV((viewportOffsetRowsCols*0.5), (viewportOffsetRowsCols*0.5));
@@ -311,7 +284,7 @@ function update(){
 	if(bWoodHaxe)
 		updateViewPortWoodAxe((viewportOffsetRowsCols*0.5), (viewportOffsetRowsCols*0.5));
 		
-	
+	updateViewPortPlayers();
 		
 	// Draw on buffer canvas
 	drawBufferCanvasMap();
@@ -403,9 +376,7 @@ function drawViewPortMap(){
 
 function drawBufferPlayers(){
 	
-	//viewportPlayersMap
 	bufferPlayersContext.clearRect(0, 0, viewportCanvas.height, viewportCanvas.width);
-	
 
 	for(var i = 0; i < viewportPlayersMap.length; i++){
 		for(var j = 0; j < viewportPlayersMap[i].length; j++){
@@ -622,9 +593,9 @@ function convertToTiledMap(mapData){
 
 function setRandomStartPoint(selectedPlayer){
 	
-	var l = (_TILES_MAP.length)-1;
-	var randStart = getRandomInt(0, l*l);
-	var p = getCoordsFromIndex(randStart);
+	var l = _TILES_MAP.length-1,
+		randStart = getRandomInt(0, l*l),
+		p = getCoordsFromIndex(randStart);
 	
 	if( _TILES_MAP[p.x][p.y].type != 2){
 		_TILES_MAP[p.x][p.y].type = 2;
@@ -632,11 +603,10 @@ function setRandomStartPoint(selectedPlayer){
 	
 	players[selectedPlayer].x = p.x;
 	players[selectedPlayer].y = p.y;
-	players[selectedPlayer].map_index = randStart;
-	
+	players[selectedPlayer].map_index = _TILES_MAP[p.x][p.y].index;
 }
 
-function drawViewportPlayer(x,y,alpha){
+/*function drawViewportPlayer(x,y,alpha){
 
 	var _x = x*zoom || (viewportOffsetRowsCols*0.5)*zoom,
 		_y = y*zoom || (viewportOffsetRowsCols*0.5)*zoom,
@@ -650,7 +620,7 @@ function drawViewportPlayer(x,y,alpha){
 		viewportCtx.drawImage(sprites[_TILE_SELECTED], _x, _y, zoom, zoom);
 		
     viewportCtx.restore();
-}
+}*/
 
 function getCoordsFromIndex(index){
 	
@@ -660,12 +630,12 @@ function getCoordsFromIndex(index){
 	return {x:_X, y:_Y};
 }
 
-function getViewportMap(index){
+function getViewportMap(entity){
 	
-	console.log(index);
-	console.dir(players[selectedPlayer]);
+	//console.log(index);
+	//console.dir(players[selectedPlayer]);
 
-	var pos = getCoordsFromIndex(index),
+	var pos = entity;
 		offset = viewportOffsetRowsCols*0.5,
 		ltx = parseInt(pos.x)-parseInt(offset),
 		lty = parseInt(pos.y)-parseInt(offset),
@@ -675,7 +645,8 @@ function getViewportMap(index){
 		_X = 0,
 		_Y = 0;
 		
-	console.dir(pos);
+	//console.dir(pos);
+	//console.dir(_TILES_MAP[pos.x][pos.y]);
 	
 	for(var x = ltx; x < mX; x++){
 
@@ -939,34 +910,22 @@ function updateViewPortWoodAxe(x,y){
 	){
 		viewportWoodAxeMap[x-1][y] = 2;
 	}
-	
 }
 
 function updateViewPortPlayers(){
 	
 	viewportPlayersMap = create2DArray(viewportRowsCols, viewportRowsCols);
 	
-	for(var i=0; i < viewportRowsCols; i++){
-		for(var j = 0; j < viewportRowsCols; j++){
-			
-			var b = false;
-			
+	for(var i = 0; i < viewportPlayersMap.length; i++){
+		for(var j = 0; j < viewportPlayersMap[i].length; j++){
 			for(var p = 0; p < players.length; p++ ){
-				
 				if( players[p].map_index == viewportMap[i][j].index ){
-					b = true;
+					viewportPlayersMap[i][j] = 2;
 				}
 			}
-			
-			if(b){
-				viewportPlayersMap[i][j] = 2;
-			}
-			
 		}
 	}
 }
-
-
 
 function updateBufferViewObject(map, x, y, r){
 	

@@ -105,12 +105,12 @@ function handleClick(x, y) {
 
 	console.log("_GRID_X:" + _GRID_X + " _GRID_X:" + _GRID_Y);
 
-	/**/
+	/*
 	console.log("x:" + x + " y:" + y);
 	console.log("_GRID_X:" + _GRID_X + " _GRID_X:" + _GRID_Y);
 	console.log("_TILES_MAP index:" + viewportMap[_GRID_X][_GRID_Y].index);
 	console.info("---");
-	return false;
+	//return false;*/
 	
 	try {
 		
@@ -133,7 +133,6 @@ function handleClick(x, y) {
 		/**/
 		if ( _GRID_X == viewportOffsetRowsCols*0.5 && _GRID_Y == viewportOffsetRowsCols*0.5){
 			
-			//bPlayerSelected = !bPlayerSelected;
 			if(bPlayerSelected){
 				
 				bPlayerSelected = false;
@@ -143,6 +142,7 @@ function handleClick(x, y) {
 			} else {
 				bPlayerSelected = true;	
 			}
+			
 			bUpdate = true;
 		}
 		
@@ -166,8 +166,11 @@ function handleClick(x, y) {
 						var nline = (viewportOffsetRowsCols*0.5) - _GRID_Y;
 							nIndex = players[selectedPlayer].map_index - (_MAP_PIXEL_DIMENSION*nline);
 							
-						if(nIndex>=0)
+						if(nIndex>=0){
 							players[selectedPlayer].map_index = nIndex;
+							players[selectedPlayer].y -= nline;
+							
+						}
 					}
 					
 					// DOWN
@@ -176,8 +179,10 @@ function handleClick(x, y) {
 						var nline = _GRID_Y - (viewportOffsetRowsCols*0.5);
 							nIndex = players[selectedPlayer].map_index + (_MAP_PIXEL_DIMENSION*nline);
 						
-						if(nIndex <= maxIndex)
+						if(nIndex <= maxIndex) {
 							players[selectedPlayer].map_index = nIndex;
+							players[selectedPlayer].y += nline;
+						}
 						
 					}
 					
@@ -188,8 +193,11 @@ function handleClick(x, y) {
 						var nline = (viewportOffsetRowsCols*0.5) - _GRID_X;
 							nIndex = players[selectedPlayer].map_index-nline;
 						
-						if(nIndex>=0)
+						if(nIndex>=0) {
 							players[selectedPlayer].map_index = nIndex;
+							
+							players[selectedPlayer].x -= nline;
+						}
 						
 					}
 					
@@ -199,13 +207,12 @@ function handleClick(x, y) {
 						var nline = _GRID_X - (viewportOffsetRowsCols*0.5);
 							nIndex = players[selectedPlayer].map_index+nline;
 						
-						if(nIndex <= maxIndex)
+						if(nIndex <= maxIndex) {
 							players[selectedPlayer].map_index = nIndex;
+							players[selectedPlayer].x += nline;
+						}
 					}
 					
-					//console.dir(viewportMap[_GRID_X][_GRID_Y]);
-					bMvtEnable = false;
-					//bPlayerSelected = false;
 					bUpdate = true;
 			}
 			
@@ -222,7 +229,6 @@ function handleClick(x, y) {
 						
 						_TILES_MAP[viewportMap[_GRID_X][_GRID_Y].x][viewportMap[_GRID_X][_GRID_Y].y].wood--;
 						players[selectedPlayer].wood++;
-						//bWoodHaxe = false;
 						
 						if(_TILES_MAP[viewportMap[_GRID_X][_GRID_Y].x][viewportMap[_GRID_X][_GRID_Y].y].wood==0){
 							_TILES_MAP[viewportMap[_GRID_X][_GRID_Y].x][viewportMap[_GRID_X][_GRID_Y].y].type = _TILE_GRASS;
@@ -242,10 +248,7 @@ function handleClick(x, y) {
 						
 					}
 			}
-			
 		}
-		
-		
 		
 		for (key in buttons) {	
 			if( _GRID_X >= buttons[key].position.x 
@@ -296,18 +299,6 @@ function handleClick(x, y) {
 				}
 			}
 		}
-		
-		
-		/*if( !bMvtEnable ){
-			
-			console.log(html);
-
-		}*/
-		
-		// On est dans le panel
-		/*if(_GRID_Y >= viewportRowsCols ){
-			bUpdate = true;
-		}*/
 		
 	}catch(err){}
 	
