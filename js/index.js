@@ -197,6 +197,18 @@ function terrainGeneration(){
 		value: 'axe'
 	};
 	
+	buttons['btn_fov'] = {
+		sprite: makeButton({x:5, y:15, width:1, height:1, flip: true}),
+		width: 1,
+		height: 1,
+		position: {
+			x: 6,
+			y: 9
+		},
+		action: 'btn_fov',
+		value: 'btn_fov'
+	};
+	
 	buttons['btn_left'] = {				
 		sprite: makeButton({x:6, y:15, width:1, height:1, flip: true}),
 		width: 1,
@@ -340,6 +352,8 @@ function drawViewPortMap(){
 			viewportCtx.drawImage(buttons['axe'].sprite, buttons['axe'].position.x*zoom, buttons['axe'].position.y*zoom, buttons['axe'].width*zoom, buttons['axe'].height*zoom);
 		}
 	}
+	
+	viewportCtx.drawImage(buttons['btn_fov'].sprite, buttons['btn_fov'].position.x*zoom, buttons['btn_fov'].position.y*zoom, buttons['btn_fov'].width*zoom, buttons['btn_fov'].height*zoom);
 	
 	viewportCtx.drawImage(buttons['btn_right'].sprite, buttons['btn_right'].position.x*zoom, buttons['btn_right'].position.y*zoom, buttons['btn_right'].width*zoom, buttons['btn_right'].height*zoom);
 	viewportCtx.drawImage(buttons['btn_left'].sprite, buttons['btn_left'].position.x*zoom, buttons['btn_left'].position.y*zoom, buttons['btn_left'].width*zoom, buttons['btn_left'].height*zoom);

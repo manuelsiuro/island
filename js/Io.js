@@ -129,23 +129,33 @@ function handleClick(x, y) {
 		
 		
 		
-		// Test if center of grid, if true it's current selected player
-		/**/
-		if ( _GRID_X == viewportOffsetRowsCols*0.5 && _GRID_Y == viewportOffsetRowsCols*0.5){
-			
-			if(bPlayerSelected){
+		// Select Player
+		if(typeof viewportPlayersMap[_GRID_X][_GRID_Y] != 'undefined'){
+			if(viewportPlayersMap[_GRID_X][_GRID_Y] == 2 
+				&& !bMvtEnable 
+				&& !bWoodHaxe ){
 				
-				bPlayerSelected = false;
-				bMvtEnable = false;
-				bWoodHaxe = false;
-				
-			} else {
-				bPlayerSelected = true;	
+				for(var p = 0; p < players.length; p++ ){
+					if( players[p].x == viewportMap[_GRID_X][_GRID_Y].x 
+						&& players[p].y == viewportMap[_GRID_X][_GRID_Y].y ){
+						
+						selectedPlayer = p;
+						
+						if(bPlayerSelected){
+							bPlayerSelected = false;
+							bMvtEnable = false;
+							bWoodHaxe = false;
+						} else {
+							bPlayerSelected = true;	
+						}
+						
+						bUpdate = true;
+					}
+				}
 			}
-			
-			bUpdate = true;
 		}
 		
+		// Map Layer move
 		if(typeof viewportMap[_GRID_X][_GRID_Y] != 'undefined'){
 			
 			// MOVE
@@ -217,7 +227,7 @@ function handleClick(x, y) {
 			}
 			
 			
-			// CUT WOOD
+			// Map Layer Cut WOOD
 			if( ( viewportMap[_GRID_X][_GRID_Y].type == _TILE_TREE 
 				|| viewportMap[_GRID_X][_GRID_Y].type == _TILE_TREE_2 
 				|| viewportMap[_GRID_X][_GRID_Y].type == _TILE_TREE_3 ) 
@@ -250,6 +260,7 @@ function handleClick(x, y) {
 			}
 		}
 		
+		// Pannel button
 		for (key in buttons) {	
 			if( _GRID_X >= buttons[key].position.x 
 				&& _GRID_X < buttons[key].position.x + (buttons[key].width) 
@@ -269,6 +280,12 @@ function handleClick(x, y) {
 					bMvtEnable = false;
 					
 					bWoodHaxe = !bWoodHaxe;
+					bUpdate = true;
+				}
+				
+				if( key == 'btn_fov' ){
+					// FOV
+					bFovEnable = !bFovEnable;
 					bUpdate = true;
 				}
 				
