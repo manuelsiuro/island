@@ -26,6 +26,7 @@ var _MAP_PIXEL_DIMENSION = 64,
 	viewportOffsetRowsCols = viewportRowsCols-1,
 	zoomOffset = 4,
 	zoomFontOffset = zoomOffset*0.5,
+	zoomIconOffset = zoomFontOffset,
 	zoom = viewportTileSize*zoomOffset,
 	fontSize = 14,
 	pannelFontSize = zoomFontOffset * fontSize,
@@ -454,18 +455,6 @@ function drawBufferPlayers(){
 		bufferPlayersContext.drawImage(sprites[_TILE_SELECTED], (viewportOffsetRowsCols*0.5)*zoom, (viewportOffsetRowsCols*0.5)*zoom, zoom, zoom);
 }
 
-function drawBufferAttack(){
-	
-	bufferAttackContext.clearRect(0, 0, viewportCanvas.height, viewportCanvas.width);
-	
-	for(var i = 0; i < viewportAttackMap.length; i++){
-			for(var j = 0; j < viewportAttackMap[i].length; j++){
-				if(viewportAttackMap[i][j]==2){
-					bufferAttackContext.drawImage(sprites[_TILE_ATTACK], i*zoom, j*zoom, zoom, zoom);
-				}
-			}
-		}
-}
 
 function drawBufferPanel(){
 
@@ -547,7 +536,7 @@ function drawBufferWoodAxe(){
 		for(var i = 0; i < viewportWoodAxeMap.length; i++){
 			for(var j = 0; j < viewportWoodAxeMap[i].length; j++){
 				if(viewportWoodAxeMap[i][j]==2){
-					bufferWoodAxeContext.drawImage(sprites[_TILE_AXE], i*zoom, j*zoom, zoom, zoom);
+					bufferWoodAxeContext.drawImage(sprites[_TILE_AXE], (i*zoom)+(zoom*0.25), (j*zoom)+(zoom*0.25), viewportTileSize, viewportTileSize);
 				}
 			}
 		}
@@ -563,12 +552,29 @@ function drawBufferMoves(){
 		for(var i = 0; i < viewportMovesMap.length; i++){
 			for(var j = 0; j < viewportMovesMap[i].length; j++){
 				if(viewportMovesMap[i][j]==2){
-					bufferMovesContext.drawImage(sprites[_TILE_MOVES], i*zoom, j*zoom, zoom, zoom);
+					bufferMovesContext.drawImage(sprites[_TILE_MOVES], (i*zoom)+(zoom*0.25), (j*zoom)+(zoom*0.25), viewportTileSize, viewportTileSize);
 				}
 			}
 		}
 	}
 }
+
+function drawBufferAttack(){
+	
+	if(bAttack && viewportAttackMap != null){
+	
+		bufferAttackContext.clearRect(0, 0, viewportCanvas.height, viewportCanvas.width);
+	
+		for(var i = 0; i < viewportAttackMap.length; i++){
+			for(var j = 0; j < viewportAttackMap[i].length; j++){
+				if(viewportAttackMap[i][j]==2){
+					bufferAttackContext.drawImage(sprites[_TILE_ATTACK], (i*zoom)+(zoom*0.25), (j*zoom)+(zoom*0.25), viewportTileSize, viewportTileSize);
+				}
+			}
+		}
+	}
+}
+
 
 function drawBufferFOV(){
 	// FOV Shadow
@@ -602,11 +608,30 @@ function drawBufferCanvasMap(){
 				bufferMapContext.drawImage(sprites[9], x*zoom, y*zoom, zoom, zoom);
 			}
 		
-			bufferMapContext.drawImage(sprites[viewportMap[x][y].type], (x*zoom), (y*zoom), zoom, zoom);
+			
+			//bufferMapContext.drawImage(sprites[viewportMap[x][y].type], (x*zoom), (y*zoom), zoom, zoom);
+			if(viewportMap[x][y].flip){
+				bufferMapContext.drawImage(sprites[viewportMap[x][y].type], (x*zoom), (y*zoom), zoom, zoom);
+				//flipImage(sprites[viewportMap[x][y].type], bufferMapContext, x, y, true, false);
+			} else {
+				bufferMapContext.drawImage(sprites[viewportMap[x][y].type], (x*zoom), (y*zoom), zoom, zoom);
+			}
 		
 		}
 	}
 }
+
+function flipImage(image, ctx, x, y, flipH, flipV) {
+    var scaleH = flipH ? -1 : 1, // Set horizontal scale to -1 if flip horizontal
+        scaleV = flipV ? -1 : 1, // Set verical scale to -1 if flip vertical
+        posX = flipH ? (1*zoom) * -1 : 0, // Set x position to -100% if flip horizontal 
+        posY = flipV ? (1*zoom) * -1 : 0; // Set y position to -100% if flip vertical
+    
+    ctx.save(); // Save the current state
+    ctx.scale(scaleH, scaleV); // Set scale to flip the image
+    ctx.drawImage(image, posX, posY, zoom, zoom); // draw the image
+    ctx.restore(); // Restore the last saved state
+};
 
 function getTileName(i){
 	
@@ -672,6 +697,7 @@ function convertToTiledMap(mapData){
 					var r = Math.random()*3<<0;
 					tempTile.type = tilesTree[r];
 					tempTile.wood = ++r;
+					tempTile.flip = getRandomBoolean();
 				}
 				
 				tiles[x][y] = tempTile;
@@ -794,8 +820,10 @@ function makeSprite(x,y, flip){
 		var m_context2 = m_canvas2.getContext('2d');
 			m_context2.scale(-1,1)
 			m_context2.drawImage(m_canvas, -viewportTileSize, 0);
+			
+			m_canvas2 = resize(m_canvas2, zoomOffset);
 
-		return resize(m_canvas2, zoomOffset);
+		return m_canvas2;
 	}
 	
 	m_canvas = resize(m_canvas, zoomOffset);

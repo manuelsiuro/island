@@ -23,7 +23,6 @@ function onUpCallback(event){
 	//console.log("KEY_UP : " + event.keyCode);
 	
 	var maxIndex = _MAP_PIXEL_DIMENSION*_MAP_PIXEL_DIMENSION;
-	var save = players[selectedPlayer].map_index;
 	var nIndex = 0;
 	
 	if( event.keyCode == 38 ){
@@ -202,6 +201,7 @@ function handleClick(x, y) {
 				
 					var nIndex = 0;
 					var maxIndex = _MAP_PIXEL_DIMENSION*_MAP_PIXEL_DIMENSION;
+					var bMoved = false;
 					
 					// UP
 					if( _GRID_Y < viewportOffsetRowsCols*0.5) {
@@ -212,8 +212,7 @@ function handleClick(x, y) {
 						if(nIndex>=0){
 							players[selectedPlayer].map_index = nIndex;
 							players[selectedPlayer].y -= nline;
-							players[selectedPlayer].currentmoves++;
-							bMvtEnable = false;
+							bMoved = true;
 						}
 					}
 					
@@ -226,8 +225,7 @@ function handleClick(x, y) {
 						if(nIndex <= maxIndex) {
 							players[selectedPlayer].map_index = nIndex;
 							players[selectedPlayer].y += nline;
-							players[selectedPlayer].currentmoves++;
-							bMvtEnable = false;
+							bMoved = true;
 						}
 						
 					}
@@ -242,8 +240,7 @@ function handleClick(x, y) {
 						if(nIndex>=0) {
 							players[selectedPlayer].map_index = nIndex;
 							players[selectedPlayer].x -= nline;
-							players[selectedPlayer].currentmoves++;
-							bMvtEnable = false;
+							bMoved = true;
 						}
 						
 					}
@@ -257,12 +254,18 @@ function handleClick(x, y) {
 						if(nIndex <= maxIndex) {
 							players[selectedPlayer].map_index = nIndex;
 							players[selectedPlayer].x += nline;
-							players[selectedPlayer].currentmoves++;
-							bMvtEnable = false;
+							bMoved = true;
 						}
 					}
 					
-					bUpdate = true;
+					if(bMoved){
+						players[selectedPlayer].currentmoves++;
+						bMvtEnable = false;
+						bUpdate = true;
+					}
+						
+					
+					
 			}
 			
 			
@@ -308,32 +311,41 @@ function handleClick(x, y) {
 				&& _GRID_Y >= buttons[key].position.y 
 				&& _GRID_Y < buttons[key].position.y + (buttons[key].height) ){
 					
-				if( key == 'move' && bPlayerSelected ){
+				if( key == 'move' 
+					&& bPlayerSelected
+					&& players[selectedPlayer].currentmoves < players[selectedPlayer].moves ){
+
 					// Disable other actions
-					bWoodHaxe = false;
-					bAttack = false;
-					
-					bMvtEnable = !bMvtEnable;
-					bUpdate = true;
+						bWoodHaxe = false;
+						bAttack = false;
+						
+						bMvtEnable = !bMvtEnable;
+						bUpdate = true;
 				}
 				
-				if( key == 'axe' && bPlayerSelected ){
+				if( key == 'axe' 
+					&& bPlayerSelected
+					&& players[selectedPlayer].currentmoves < players[selectedPlayer].moves ){
+
 					// Disable other actions
-					bMvtEnable = false;
-					bAttack = false;
-					
-					bWoodHaxe = !bWoodHaxe;
-					bUpdate = true;
+						bMvtEnable = false;
+						bAttack = false;
+						
+						bWoodHaxe = !bWoodHaxe;
+						bUpdate = true;
 				}
 				
 				//
-				if( key == 'attack' && bPlayerSelected ){
+				if( key == 'attack' 
+					&& bPlayerSelected
+					&& players[selectedPlayer].currentmoves < players[selectedPlayer].moves ){
+
 					// Disable other actions
-					bMvtEnable = false;
-					bWoodHaxe = false;
-					
-					bAttack = !bAttack;
-					bUpdate = true;
+						bMvtEnable = false;
+						bWoodHaxe = false;
+						
+						bAttack = !bAttack;
+						bUpdate = true;
 				}
 				
 				if( key == 'btn_fov' ){

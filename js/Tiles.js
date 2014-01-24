@@ -5,6 +5,7 @@ var Tile = function(type){
 	
 	this.index = 0;
 	this.visited = false;
+	this.flip = false;
 	this.x = 0;
 	this.y = 0;
 	this.colorFill = {r : 0, g : 0, b : 0};
