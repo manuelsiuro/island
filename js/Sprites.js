@@ -21,11 +21,14 @@ sprites_img.onload = function(){
 	sprites[_TILE_COLOR_SAND] = makeSprite(2,0, false); // sand color
 	sprites[_TILE_COLOR_GRASS] = makeSprite(0,1, false); // grass color
 	
-	sprites[_TILE_PLAYER] = makeSprite(0,3, false); // grass color
+	sprites[_TILE_PLAYER] = makeSprite(0,3, false);
+	sprites[_TILE_PLAYER_1] = makeSprite(10,4, false);
+	
+	
 	sprites[_TILE_MOVES] = makeSprite(4,0, true); // moves
 	sprites[_TILE_SELECTED] = makeSprite(5,0, false); // selected
 	sprites[_TILE_AXE] = makeSprite(6,3, false); // hache
-	sprites[_TILE_ATTACK] = makeSprite(6,3, false); // attack
+	sprites[_TILE_ATTACK] = makeSprite(11,4, false); // attack
 	
 	
 	

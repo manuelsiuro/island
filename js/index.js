@@ -17,6 +17,8 @@ var _MAP_PIXEL_DIMENSION = 64,
 	bufferWoodAxeContext = bufferWoodAxeCanvas.getContext('2d'),
 	bufferPlayersCanvas = document.createElement('canvas'),
 	bufferPlayersContext = bufferPlayersCanvas.getContext('2d'),
+	bufferAttackCanvas = document.createElement('canvas'),
+	bufferAttackContext = bufferAttackCanvas.getContext('2d'),
 	panelCanvas = document.createElement('canvas'),
 	panelContext = panelCanvas.getContext('2d'),
 	viewportTileSize = 16,
@@ -28,11 +30,12 @@ var _MAP_PIXEL_DIMENSION = 64,
 	fontSize = 14,
 	pannelFontSize = zoomFontOffset * fontSize,
 	viewportMap = [],
-	viewportCollisionMap = null,
-	viewportFovMap = null,
-	viewportMovesMap = null,
-	viewportWoodAxeMap = null,
-	viewportPlayersMap = null,
+	viewportCollisionMap = create2DArray(viewportRowsCols, viewportRowsCols),
+	viewportFovMap = create2DArray(viewportRowsCols, viewportRowsCols),
+	viewportMovesMap = create2DArray(viewportRowsCols, viewportRowsCols),
+	viewportWoodAxeMap = create2DArray(viewportRowsCols, viewportRowsCols),
+	viewportPlayersMap = create2DArray(viewportRowsCols, viewportRowsCols),
+	viewportAttackMap = create2DArray(viewportRowsCols, viewportRowsCols),
 	_TILE_WATER = 0,
 	_TILE_SAND = 1,
 	_TILE_GRASS = 2,
@@ -48,7 +51,7 @@ var _MAP_PIXEL_DIMENSION = 64,
 	_TILE_SELECTED = 12,
 	_TILE_AXE = 13,
 	_TILE_ATTACK = 14,
-	_TILE_XXXXX = 15,
+	_TILE_PLAYER_1 = 15,
 	_TILE_PANEL = 16,
 	_TILE_XXXXX = 18,
 	_TILE_XXXXX = 19,
@@ -80,6 +83,7 @@ var _MAP_PIXEL_DIMENSION = 64,
 	bUiEnable = true,
 	bPlayerSelected = false,
 	bWoodHaxe = false,
+	bAttack = false,
 	isIpad = navigator.userAgent.match(/iPad/i) != null,
 	isIphone = navigator.userAgent.match(/iPhone/i) != null,
 	isAndroid = navigator.userAgent.match(/Android/i) != null,
@@ -95,7 +99,8 @@ var _MAP_PIXEL_DIMENSION = 64,
 	_GRID_Y = viewportOffsetRowsCols*0.5,
 	buttons = [],
 	players = [],
-	selectedPlayer = 0;
+	selectedPlayer = 0,
+	currentTurnTeam = 0;
 							  
 /* ------------------------------------------------------------------------------------------------------------------------------------------- */
 /* ------------------------------------------------------------------------------------------------------------------------------------------- */
@@ -159,6 +164,9 @@ function init(){
 	bufferWoodAxeCanvas.width = _SCREEN_WIDTH;
 	bufferWoodAxeCanvas.height = _SCREEN_HEIGHT;
 	
+	bufferAttackCanvas.width = _SCREEN_WIDTH;
+	bufferAttackCanvas.height = _SCREEN_HEIGHT;
+	
 	bufferPlayersCanvas.width = _SCREEN_WIDTH;
 	bufferPlayersCanvas.height = _SCREEN_HEIGHT;
 	
@@ -197,6 +205,18 @@ function terrainGeneration(){
 		value: 'axe'
 	};
 	
+	buttons['attack'] = {				
+		sprite: makeButton({x:5, y:15, width:1, height:1, icon: _TILE_ATTACK}),
+		width: 1,
+		height: 1,
+		position: {
+			x: 2,
+			y: 9
+		},
+		action: 'attack',
+		value: 'attack'
+	};
+	
 	buttons['btn_fov'] = {
 		sprite: makeButton({x:5, y:15, width:1, height:1, flip: true}),
 		width: 1,
@@ -233,8 +253,11 @@ function terrainGeneration(){
 		value: 'btn_right'
 	};
 	
+	var team = 0;
 	for(var i = 0; i< 50; i++){
-		players[i] = new Player(i);
+		players[i] = new Player(i,team);
+		if(team==1)team=-1;
+		team++;
 	}
 	
 	generateMap();
@@ -295,8 +318,12 @@ function update(){
 		
 	if(bWoodHaxe)
 		updateViewPortWoodAxe((viewportOffsetRowsCols*0.5), (viewportOffsetRowsCols*0.5));
+	
+	if(bAttack)
+		updateViewPortAttack((viewportOffsetRowsCols*0.5), (viewportOffsetRowsCols*0.5));
 		
-	updateViewPortPlayers();
+	updateViewPortPlayers();	
+	
 		
 	// Draw on buffer canvas
 	drawBufferCanvasMap();
@@ -309,8 +336,13 @@ function update(){
 		
 	if(bWoodHaxe)
 		drawBufferWoodAxe();
-		
+	
 	drawBufferPlayers();
+	
+	if(bAttack)
+		drawBufferAttack();
+		
+	
 	
 	drawBufferPanel();
 }
@@ -333,14 +365,19 @@ function drawViewPortMap(){
 	
 	viewportCtx.drawImage(bufferPlayersCanvas, _MAP_OFFSET_X, _MAP_OFFSET_Y);
 	
-	if(bFovEnable)
-		viewportCtx.drawImage(bufferFovCanvas,  _MAP_OFFSET_X, _MAP_OFFSET_Y);
-		
+	// Layers
 	if(bMvtEnable)
 		viewportCtx.drawImage(bufferMovesCanvas,  _MAP_OFFSET_X, _MAP_OFFSET_Y);
 		
 	if(bWoodHaxe)
 		viewportCtx.drawImage(bufferWoodAxeCanvas,  _MAP_OFFSET_X, _MAP_OFFSET_Y);
+		
+	if(bAttack)
+		viewportCtx.drawImage(bufferAttackCanvas,  _MAP_OFFSET_X, _MAP_OFFSET_Y);
+	
+	if(bFovEnable)
+		viewportCtx.drawImage(bufferFovCanvas,  _MAP_OFFSET_X, _MAP_OFFSET_Y);
+	
 	
 	// UI --
 	if(bUiEnable) {	
@@ -350,11 +387,11 @@ function drawViewPortMap(){
 		if(bPlayerSelected){
 			viewportCtx.drawImage(buttons['move'].sprite, buttons['move'].position.x*zoom, buttons['move'].position.y*zoom, buttons['move'].width*zoom, buttons['move'].height*zoom);
 			viewportCtx.drawImage(buttons['axe'].sprite, buttons['axe'].position.x*zoom, buttons['axe'].position.y*zoom, buttons['axe'].width*zoom, buttons['axe'].height*zoom);
+			viewportCtx.drawImage(buttons['attack'].sprite, buttons['attack'].position.x*zoom, buttons['attack'].position.y*zoom, buttons['attack'].width*zoom, buttons['attack'].height*zoom);
 		}
 	}
 	
 	viewportCtx.drawImage(buttons['btn_fov'].sprite, buttons['btn_fov'].position.x*zoom, buttons['btn_fov'].position.y*zoom, buttons['btn_fov'].width*zoom, buttons['btn_fov'].height*zoom);
-	
 	viewportCtx.drawImage(buttons['btn_right'].sprite, buttons['btn_right'].position.x*zoom, buttons['btn_right'].position.y*zoom, buttons['btn_right'].width*zoom, buttons['btn_right'].height*zoom);
 	viewportCtx.drawImage(buttons['btn_left'].sprite, buttons['btn_left'].position.x*zoom, buttons['btn_left'].position.y*zoom, buttons['btn_left'].width*zoom, buttons['btn_left'].height*zoom);
 	
@@ -395,14 +432,39 @@ function drawBufferPlayers(){
 	for(var i = 0; i < viewportPlayersMap.length; i++){
 		for(var j = 0; j < viewportPlayersMap[i].length; j++){
 			if(viewportPlayersMap[i][j]==2){
-				bufferPlayersContext.drawImage(sprites[_TILE_PLAYER], i*zoom, j*zoom, zoom, zoom);
+				
+				
+				for(var p = 0; p < players.length; p++ ){
+					if( players[p].map_index == viewportMap[i][j].index ){
+						if(players[p].team == 0){
+							bufferPlayersContext.drawImage(sprites[_TILE_PLAYER], i*zoom, j*zoom, zoom, zoom);
+						} else {
+							bufferPlayersContext.drawImage(sprites[_TILE_PLAYER_1], i*zoom, j*zoom, zoom, zoom);
+						}
+						
+					}
+				}
+				
+				
 			}
 		}
 	}
 	
 	if(bPlayerSelected)
 		bufferPlayersContext.drawImage(sprites[_TILE_SELECTED], (viewportOffsetRowsCols*0.5)*zoom, (viewportOffsetRowsCols*0.5)*zoom, zoom, zoom);
+}
+
+function drawBufferAttack(){
 	
+	bufferAttackContext.clearRect(0, 0, viewportCanvas.height, viewportCanvas.width);
+	
+	for(var i = 0; i < viewportAttackMap.length; i++){
+			for(var j = 0; j < viewportAttackMap[i].length; j++){
+				if(viewportAttackMap[i][j]==2){
+					bufferAttackContext.drawImage(sprites[_TILE_ATTACK], i*zoom, j*zoom, zoom, zoom);
+				}
+			}
+		}
 }
 
 function drawBufferPanel(){
@@ -433,11 +495,27 @@ function drawBufferPanel(){
 	panelContext.fillText(viewportMap[_X][_Y].population, dataMarginLeft, startline);
 	startline += lineHeight;*/
 	
+	panelContext.fillText("Life", labelMarginLeft, startline);
+	panelContext.fillText(players[selectedPlayer].life, dataMarginLeft, startline);
+	startline += lineHeight;
+	
+	panelContext.fillText("XP", labelMarginLeft, startline);
+	panelContext.fillText(players[selectedPlayer].xp, dataMarginLeft, startline);
+	startline += lineHeight;
+	
+	panelContext.fillText("FOV Attack", labelMarginLeft, startline);
+	panelContext.fillText(players[selectedPlayer].range_attack, dataMarginLeft, startline);
+	startline += lineHeight;
+	
+	panelContext.fillText("Moves", labelMarginLeft, startline);
+	panelContext.fillText(players[selectedPlayer].currentmoves + "/" + players[selectedPlayer].moves, dataMarginLeft, startline);
+	startline += lineHeight;
+	
 	panelContext.fillText("Wood", labelMarginLeft, startline);
 	panelContext.fillText(players[selectedPlayer].wood, dataMarginLeft, startline);
 	startline += lineHeight;
 	
-	panelContext.fillText("Rock", labelMarginLeft, startline);
+	/*panelContext.fillText("Rock", labelMarginLeft, startline);
 	panelContext.fillText(players[selectedPlayer].rock, dataMarginLeft, startline);
 	startline += lineHeight;
 	
@@ -451,12 +529,14 @@ function drawBufferPanel(){
 	
 	panelContext.fillText("Or", labelMarginLeft, startline);
 	panelContext.fillText(players[selectedPlayer].or, dataMarginLeft, startline);
-	startline += lineHeight;
+	startline += lineHeight;*/
 	
 	/*panelContext.fillText("Grid", labelMarginLeft, startline);
 	panelContext.fillText(_GRID_X + ',' + _GRID_Y, dataMarginLeft, startline);
 	startline += lineHeight;*/
 }
+
+
 
 function drawBufferWoodAxe(){
 	
@@ -751,6 +831,10 @@ function makeButton(args){
 		if(args.icon == _TILE_AXE)
 			sprX = 6,
 			sprY = 3;
+			
+		if(args.icon == _TILE_ATTACK )
+			sprX = 11,
+			sprY = 4;
 		
 			m_context.drawImage(sprites_img, -sprX*viewportTileSize, -sprY*viewportTileSize);
 			
@@ -933,12 +1017,65 @@ function updateViewPortPlayers(){
 	for(var i = 0; i < viewportPlayersMap.length; i++){
 		for(var j = 0; j < viewportPlayersMap[i].length; j++){
 			for(var p = 0; p < players.length; p++ ){
-				if( players[p].map_index == viewportMap[i][j].index ){
+				if( players[p].map_index == viewportMap[i][j].index
+					&& players[p].alive ){
 					viewportPlayersMap[i][j] = 2;
 				}
 			}
 		}
 	}
+}
+
+function updateViewPortAttack(x,y){
+	
+	var plx = x,
+		ply = y;
+	
+	viewportAttackMap = create2DArray(viewportRowsCols, viewportRowsCols);
+	
+	for(var i = 0; i < viewportAttackMap.length; i++){
+		for(var j = 0; j < viewportAttackMap[i].length; j++){
+			if( viewportMap[i][j].type == _TILE_WATER 
+				|| viewportMap[i][j].type == _TILE_TREE
+				|| viewportMap[i][j].type == _TILE_TREE_2
+				|| viewportMap[i][j].type == _TILE_TREE_3
+				|| viewportMap[i][j].type == _TILE_EMPTY ){
+				viewportAttackMap[i][j] = 1;
+			} else {
+				viewportAttackMap[i][j] = 0;
+			}
+		}
+	}
+	
+	updateBufferViewObject(viewportAttackMap, plx, ply, players[selectedPlayer].range_attack);
+	
+	
+	// On enleve toutes les zones que ne sont pas un player
+	for(var i = 0; i < viewportAttackMap.length; i++){
+		for(var j = 0; j < viewportAttackMap[i].length; j++){
+			
+			if( viewportAttackMap[i][j] == 2 
+			&& viewportPlayersMap[i][j] != 2 ){
+				
+				viewportAttackMap[i][j] = 0;
+				
+			}
+			
+			for(var p = 0; p < players.length; p++ ){
+				
+				if( players[p].map_index == viewportMap[i][j].index 
+					&& players[p].map_index != players[selectedPlayer].map_index
+					&& players[p].team == players[selectedPlayer].team 
+					) {
+						viewportAttackMap[i][j] = 0;
+				}
+			}
+			
+		}
+	}
+	
+	
+	
 }
 
 function updateBufferViewObject(map, x, y, r){
