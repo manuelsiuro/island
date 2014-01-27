@@ -318,6 +318,7 @@ function handleClick(x, y) {
 					// Disable other actions
 						bWoodHaxe = false;
 						bAttack = false;
+						bBuild = false;
 						
 						bMvtEnable = !bMvtEnable;
 						bUpdate = true;
@@ -330,6 +331,7 @@ function handleClick(x, y) {
 					// Disable other actions
 						bMvtEnable = false;
 						bAttack = false;
+						bBuild = false;
 						
 						bWoodHaxe = !bWoodHaxe;
 						bUpdate = true;
@@ -343,18 +345,22 @@ function handleClick(x, y) {
 					// Disable other actions
 						bMvtEnable = false;
 						bWoodHaxe = false;
+						bBuild = false;
 						
 						bAttack = !bAttack;
 						bUpdate = true;
 				}
 				
-				if( key == 'btn_fov' ){
-					// FOV
-					/*
-					bFovEnable = !bFovEnable;
-					bUpdate = true;
-					*/
-					if(bPannelBuildVisible){
+				if( key == 'build' 
+					&& bPlayerSelected
+					&& players[selectedPlayer].currentmoves < players[selectedPlayer].moves ){
+
+					// Disable other actions
+						bMvtEnable = false;
+						bWoodHaxe = false;
+						bAttack = false;
+						
+						if(bPannelBuildVisible){
 						var positionA = {x: 0, y: -(viewportRowsCols*zoom), rotation: 0};
 						var positionB = {x: 0, y: 0, rotation: 0};
 						tweenPannelBuild(positionB, positionA);
@@ -368,6 +374,18 @@ function handleClick(x, y) {
 					}
 						
 					bPannelBuildVisible = !bPannelBuildVisible;
+						
+						bBuild = !bBuild;
+						bUpdate = true;
+				}
+				
+				if( key == 'btn_fov' ){
+					// FOV
+					/**/
+					bFovEnable = !bFovEnable;
+					bUpdate = true;
+					
+					
 				}
 				
 				if( key == 'btn_right' ){

@@ -29,6 +29,7 @@ sprites_img.onload = function(){
 	sprites[_TILE_SELECTED] = makeSprite(5,0, false); // selected
 	sprites[_TILE_AXE] = makeSprite(6,3, false); // hache
 	sprites[_TILE_ATTACK] = makeSprite(11,4, false); // attack
+	sprites[_TILE_HAMMER] = makeSprite(12,4, false); // marteau
 	
 	
 	

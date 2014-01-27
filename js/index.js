@@ -60,7 +60,7 @@ var _MAP_PIXEL_DIMENSION = 64,
 	_TILE_PLAYER_1 = 15,
 	_TILE_PANEL = 16,
 	_TILE_XXXXX = 18,
-	_TILE_XXXXX = 19,
+	_TILE_HAMMER = 19,
 	_TILE_TREE = 20,
 	_TILE_TREE_2 = 21,
 	_TILE_TREE_3 = 22,
@@ -90,6 +90,7 @@ var _MAP_PIXEL_DIMENSION = 64,
 	bPlayerSelected = false,
 	bWoodHaxe = false,
 	bAttack = false,
+	bBuild = false,
 	bPannelBuildVisible = false,
 	isIpad = navigator.userAgent.match(/iPad/i) != null,
 	isIphone = navigator.userAgent.match(/iPhone/i) != null,
@@ -225,6 +226,18 @@ function terrainGeneration(){
 		},
 		action: 'attack',
 		value: 'attack'
+	};
+	
+	buttons['build'] = {				
+		sprite: makeButton({x:5, y:15, width:1, height:1, icon: _TILE_HAMMER}),
+		width: 1,
+		height: 1,
+		position: {
+			x: 3,
+			y: 9
+		},
+		action: 'build',
+		value: 'build'
 	};
 	
 	buttons['btn_fov'] = {
@@ -403,6 +416,7 @@ function drawViewPortMap(){
 			viewportCtx.drawImage(buttons['move'].sprite, buttons['move'].position.x*zoom, buttons['move'].position.y*zoom, buttons['move'].width*zoom, buttons['move'].height*zoom);
 			viewportCtx.drawImage(buttons['axe'].sprite, buttons['axe'].position.x*zoom, buttons['axe'].position.y*zoom, buttons['axe'].width*zoom, buttons['axe'].height*zoom);
 			viewportCtx.drawImage(buttons['attack'].sprite, buttons['attack'].position.x*zoom, buttons['attack'].position.y*zoom, buttons['attack'].width*zoom, buttons['attack'].height*zoom);
+			viewportCtx.drawImage(buttons['build'].sprite, buttons['build'].position.x*zoom, buttons['build'].position.y*zoom, buttons['build'].width*zoom, buttons['build'].height*zoom);
 		}
 	}
 	
@@ -452,8 +466,8 @@ var tween;
 // https://github.com/sole/tween.js/blob/master/src/Tween.js
 function tweenPannelBuild(positionStart, positionEnd){
 	
-	console.dir(positionStart);
-	console.dir(positionEnd);
+	//console.dir(positionStart);
+	//console.dir(positionEnd);
 	
 	tween = new TWEEN.Tween( positionStart )
 	.to( positionEnd, 1000 )
@@ -919,6 +933,10 @@ function makeButton(args){
 			
 		if(args.icon == _TILE_ATTACK )
 			sprX = 11,
+			sprY = 4;
+			
+		if(args.icon == _TILE_HAMMER )
+			sprX = 12,
 			sprY = 4;
 		
 			m_context.drawImage(sprites_img, -sprX*viewportTileSize, -sprY*viewportTileSize);
