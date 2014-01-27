@@ -19,8 +19,13 @@ var _MAP_PIXEL_DIMENSION = 64,
 	bufferPlayersContext = bufferPlayersCanvas.getContext('2d'),
 	bufferAttackCanvas = document.createElement('canvas'),
 	bufferAttackContext = bufferAttackCanvas.getContext('2d'),
+	
 	panelCanvas = document.createElement('canvas'),
 	panelContext = panelCanvas.getContext('2d'),
+	
+	panelBuildCanvas = document.createElement('canvas'),
+	panelBuildContext = panelBuildCanvas.getContext('2d'),
+	
 	viewportTileSize = 16,
 	viewportRowsCols = 9,
 	viewportOffsetRowsCols = viewportRowsCols-1,
@@ -85,6 +90,7 @@ var _MAP_PIXEL_DIMENSION = 64,
 	bPlayerSelected = false,
 	bWoodHaxe = false,
 	bAttack = false,
+	bPannelBuildVisible = false,
 	isIpad = navigator.userAgent.match(/iPad/i) != null,
 	isIphone = navigator.userAgent.match(/iPhone/i) != null,
 	isAndroid = navigator.userAgent.match(/Android/i) != null,
@@ -171,6 +177,9 @@ function init(){
 	bufferPlayersCanvas.width = _SCREEN_WIDTH;
 	bufferPlayersCanvas.height = _SCREEN_HEIGHT;
 	
+	panelBuildCanvas.width = _SCREEN_WIDTH;
+	panelBuildCanvas.height = _SCREEN_HEIGHT;
+	
 	panelContext.font = '14px silkscreennormal, cursive';
 		
 	window.scrollTo( 0, 1 );
@@ -254,8 +263,9 @@ function terrainGeneration(){
 		value: 'btn_right'
 	};
 	
+	// Add random player
 	var team = 0;
-	for(var i = 0; i< 50; i++){
+	for(var i = 0; i< 6; i++){
 		players[i] = new Player(i,team);
 		if(team==1)team=-1;
 		team++;
@@ -292,6 +302,8 @@ function gameLoop() {
 			bUpdate = false;
 		}
 		
+		TWEEN.update();
+		
 		redraw();
 		
 		frame++;
@@ -323,7 +335,9 @@ function update(){
 	if(bAttack)
 		updateViewPortAttack((viewportOffsetRowsCols*0.5), (viewportOffsetRowsCols*0.5));
 		
-	updateViewPortPlayers();	
+	updateViewPortPlayers();
+	
+	updatePanelBuild();	
 	
 		
 	// Draw on buffer canvas
@@ -396,7 +410,11 @@ function drawViewPortMap(){
 	viewportCtx.drawImage(buttons['btn_right'].sprite, buttons['btn_right'].position.x*zoom, buttons['btn_right'].position.y*zoom, buttons['btn_right'].width*zoom, buttons['btn_right'].height*zoom);
 	viewportCtx.drawImage(buttons['btn_left'].sprite, buttons['btn_left'].position.x*zoom, buttons['btn_left'].position.y*zoom, buttons['btn_left'].width*zoom, buttons['btn_left'].height*zoom);
 	
-		
+	
+	//panelBuildCanvas
+	viewportCtx.drawImage(panelBuildCanvas,  _PANEL_BUILD_OFFSET_X, _PANEL_BUILD_OFFSET_Y);
+	
+	
 	// Collision and Astar
 	/*if(viewportCollisionMap != null && currentPath.length > 0 && frame == 0){
 		
@@ -424,7 +442,46 @@ function drawViewPortMap(){
 		console.info("");
 	}*/
 }
+var _PANEL_BUILD_OFFSET_X = 0;
+var _PANEL_BUILD_OFFSET_Y = -(viewportRowsCols*zoom);
 
+//var positionA = {x: _PANEL_BUILD_OFFSET_X, y: _PANEL_BUILD_OFFSET_Y, rotation: 0};
+//var positionB = {x: 0, y: 0, rotation: 0};
+var tween;
+
+// https://github.com/sole/tween.js/blob/master/src/Tween.js
+function tweenPannelBuild(positionStart, positionEnd){
+	
+	console.dir(positionStart);
+	console.dir(positionEnd);
+	
+	tween = new TWEEN.Tween( positionStart )
+	.to( positionEnd, 1000 )
+	.easing( TWEEN.Easing.Exponential.InOut )
+	.onUpdate( function () {
+		
+		_PANEL_BUILD_OFFSET_X = this.x;
+		_PANEL_BUILD_OFFSET_Y = this.y;
+
+	} )
+	.start();
+	
+}
+
+function updatePanelBuild(){
+	
+	panelBuildContext.clearRect(0, 0, viewportCanvas.height, viewportCanvas.width);
+	
+	panelBuildContext.save();
+	panelBuildContext.beginPath();
+	panelBuildContext.rect(0, 0, (viewportRowsCols*zoom), (viewportRowsCols*zoom));
+	panelBuildContext.fillStyle = '#E5C481';
+	panelBuildContext.fill();
+	panelBuildContext.lineWidth = 1;
+	panelBuildContext.strokeStyle = '#B7863C';
+	panelBuildContext.stroke();
+	panelBuildContext.restore();
+}
 
 function drawBufferPlayers(){
 	

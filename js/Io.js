@@ -350,8 +350,24 @@ function handleClick(x, y) {
 				
 				if( key == 'btn_fov' ){
 					// FOV
+					/*
 					bFovEnable = !bFovEnable;
 					bUpdate = true;
+					*/
+					if(bPannelBuildVisible){
+						var positionA = {x: 0, y: -(viewportRowsCols*zoom), rotation: 0};
+						var positionB = {x: 0, y: 0, rotation: 0};
+						tweenPannelBuild(positionB, positionA);
+						console.log("HIDE");
+					}
+					else {
+						var positionA = {x: 0, y: -(viewportRowsCols*zoom), rotation: 0};
+						var positionB = {x: 0, y: 0, rotation: 0};
+						tweenPannelBuild(positionA, positionB);
+						console.log("SHOW");
+					}
+						
+					bPannelBuildVisible = !bPannelBuildVisible;
 				}
 				
 				if( key == 'btn_right' ){
