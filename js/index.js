@@ -1,3 +1,4 @@
+//https://github.com/flashhawk/spp.js
 var _MAP_PIXEL_DIMENSION = 64,
 	_PIXEL_UNIT_SIZE = 1, // Power of 2
 	_MAP_ROUGHNESS = 8,
