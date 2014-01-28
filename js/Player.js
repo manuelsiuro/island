@@ -19,12 +19,12 @@ var Player = function(type, team){
 	this.y = 0;
 	this.map_index = 0;
 	this.type = type || 0;
-	this.moves = 2;
+	this.moves = 20;
 	this.currentmoves = 0;
 	this.wood = 0;
 	this.rock = 0;
 	this.cuivre = 0;
 	this.fer = 0;
-	this.or = 0;
+	this.or = 10;
 
 }

@@ -19,13 +19,12 @@ var _MAP_PIXEL_DIMENSION = 64,
 	bufferPlayersContext = bufferPlayersCanvas.getContext('2d'),
 	bufferAttackCanvas = document.createElement('canvas'),
 	bufferAttackContext = bufferAttackCanvas.getContext('2d'),
-	
+	bufferBuildCanvas = document.createElement('canvas'),
+	bufferBuildContext = bufferBuildCanvas.getContext('2d'),
 	panelCanvas = document.createElement('canvas'),
 	panelContext = panelCanvas.getContext('2d'),
-	
 	panelBuildCanvas = document.createElement('canvas'),
 	panelBuildContext = panelBuildCanvas.getContext('2d'),
-	
 	viewportTileSize = 16,
 	viewportRowsCols = 9,
 	viewportOffsetRowsCols = viewportRowsCols-1,
@@ -42,6 +41,7 @@ var _MAP_PIXEL_DIMENSION = 64,
 	viewportWoodAxeMap = create2DArray(viewportRowsCols, viewportRowsCols),
 	viewportPlayersMap = create2DArray(viewportRowsCols, viewportRowsCols),
 	viewportAttackMap = create2DArray(viewportRowsCols, viewportRowsCols),
+	viewportBuildMap = create2DArray(viewportRowsCols, viewportRowsCols),
 	_TILE_WATER = 0,
 	_TILE_SAND = 1,
 	_TILE_GRASS = 2,
@@ -59,7 +59,7 @@ var _MAP_PIXEL_DIMENSION = 64,
 	_TILE_ATTACK = 14,
 	_TILE_PLAYER_1 = 15,
 	_TILE_PANEL = 16,
-	_TILE_XXXXX = 18,
+	_TILE_HOUSE = 18,
 	_TILE_HAMMER = 19,
 	_TILE_TREE = 20,
 	_TILE_TREE_2 = 21,
@@ -105,10 +105,15 @@ var _MAP_PIXEL_DIMENSION = 64,
 	sprites_img = document.createElement("img"),
 	_GRID_X = viewportOffsetRowsCols*0.5,
 	_GRID_Y = viewportOffsetRowsCols*0.5,
+	_BUILD_X = 0,
+	_BUILD_Y = 0,
 	buttons = [],
 	players = [],
 	selectedPlayer = 0,
-	currentTurnTeam = 0;
+	currentTurnTeam = 0,
+	_PANEL_BUILD_OFFSET_X = 0,
+	_PANEL_BUILD_OFFSET_Y = -(viewportRowsCols*zoom),
+	tween;
 							  
 /* ------------------------------------------------------------------------------------------------------------------------------------------- */
 /* ------------------------------------------------------------------------------------------------------------------------------------------- */
@@ -174,6 +179,9 @@ function init(){
 	
 	bufferAttackCanvas.width = _SCREEN_WIDTH;
 	bufferAttackCanvas.height = _SCREEN_HEIGHT;
+	
+	bufferBuildCanvas.width = _SCREEN_WIDTH;
+	bufferBuildCanvas.height = _SCREEN_HEIGHT;
 	
 	bufferPlayersCanvas.width = _SCREEN_WIDTH;
 	bufferPlayersCanvas.height = _SCREEN_HEIGHT;
@@ -276,6 +284,19 @@ function terrainGeneration(){
 		value: 'btn_right'
 	};
 	
+	buttons['btn_buy_house'] = {				
+		sprite: makeButton({x:6, y:15, width:1, height:1}),
+		width: 1,
+		height: 1,
+		position: {
+			x: 7,
+			y: 7
+		},
+		action: 'btn_buy_house',
+		value: 'btn_buy_house'
+	};
+	
+	
 	// Add random player
 	var team = 0;
 	for(var i = 0; i< 6; i++){
@@ -348,9 +369,14 @@ function update(){
 	if(bAttack)
 		updateViewPortAttack((viewportOffsetRowsCols*0.5), (viewportOffsetRowsCols*0.5));
 		
+	if(bBuild)
+		updateViewPortBuild((viewportOffsetRowsCols*0.5), (viewportOffsetRowsCols*0.5));
+		
 	updateViewPortPlayers();
 	
-	updatePanelBuild();	
+	if(bBuild)
+		updatePanelBuild();
+	
 	
 		
 	// Draw on buffer canvas
@@ -370,6 +396,8 @@ function update(){
 	if(bAttack)
 		drawBufferAttack();
 		
+	if(bBuild)
+		drawBufferBuild();
 	
 	
 	drawBufferPanel();
@@ -403,9 +431,11 @@ function drawViewPortMap(){
 	if(bAttack)
 		viewportCtx.drawImage(bufferAttackCanvas,  _MAP_OFFSET_X, _MAP_OFFSET_Y);
 	
+	if(bBuild)
+		viewportCtx.drawImage(bufferBuildCanvas,  _MAP_OFFSET_X, _MAP_OFFSET_Y);
+	
 	if(bFovEnable)
 		viewportCtx.drawImage(bufferFovCanvas,  _MAP_OFFSET_X, _MAP_OFFSET_Y);
-	
 	
 	// UI --
 	if(bUiEnable) {	
@@ -413,19 +443,50 @@ function drawViewPortMap(){
 		
 		// BUTTON
 		if(bPlayerSelected){
-			viewportCtx.drawImage(buttons['move'].sprite, buttons['move'].position.x*zoom, buttons['move'].position.y*zoom, buttons['move'].width*zoom, buttons['move'].height*zoom);
-			viewportCtx.drawImage(buttons['axe'].sprite, buttons['axe'].position.x*zoom, buttons['axe'].position.y*zoom, buttons['axe'].width*zoom, buttons['axe'].height*zoom);
-			viewportCtx.drawImage(buttons['attack'].sprite, buttons['attack'].position.x*zoom, buttons['attack'].position.y*zoom, buttons['attack'].width*zoom, buttons['attack'].height*zoom);
-			viewportCtx.drawImage(buttons['build'].sprite, buttons['build'].position.x*zoom, buttons['build'].position.y*zoom, buttons['build'].width*zoom, buttons['build'].height*zoom);
+			viewportCtx.drawImage(buttons['move'].sprite, 
+									buttons['move'].position.x*zoom, 
+									buttons['move'].position.y*zoom, 
+									buttons['move'].width*zoom, 
+									buttons['move'].height*zoom);
+									
+			viewportCtx.drawImage(buttons['axe'].sprite, 
+									buttons['axe'].position.x*zoom, 
+									buttons['axe'].position.y*zoom, 
+									buttons['axe'].width*zoom, 
+									buttons['axe'].height*zoom);
+									
+			viewportCtx.drawImage(buttons['attack'].sprite, 
+									buttons['attack'].position.x*zoom, 
+									buttons['attack'].position.y*zoom, 
+									buttons['attack'].width*zoom, 
+									buttons['attack'].height*zoom);
+									
+			viewportCtx.drawImage(buttons['build'].sprite, 
+									buttons['build'].position.x*zoom, 
+									buttons['build'].position.y*zoom, 
+									buttons['build'].width*zoom, 
+									buttons['build'].height*zoom);
 		}
 	}
 	
-	viewportCtx.drawImage(buttons['btn_fov'].sprite, buttons['btn_fov'].position.x*zoom, buttons['btn_fov'].position.y*zoom, buttons['btn_fov'].width*zoom, buttons['btn_fov'].height*zoom);
-	viewportCtx.drawImage(buttons['btn_right'].sprite, buttons['btn_right'].position.x*zoom, buttons['btn_right'].position.y*zoom, buttons['btn_right'].width*zoom, buttons['btn_right'].height*zoom);
-	viewportCtx.drawImage(buttons['btn_left'].sprite, buttons['btn_left'].position.x*zoom, buttons['btn_left'].position.y*zoom, buttons['btn_left'].width*zoom, buttons['btn_left'].height*zoom);
+	viewportCtx.drawImage(buttons['btn_fov'].sprite, 
+							buttons['btn_fov'].position.x*zoom, 
+							buttons['btn_fov'].position.y*zoom, 
+							buttons['btn_fov'].width*zoom, 
+							buttons['btn_fov'].height*zoom);
+							
+	viewportCtx.drawImage(buttons['btn_right'].sprite, 
+							buttons['btn_right'].position.x*zoom, 
+							buttons['btn_right'].position.y*zoom, 
+							buttons['btn_right'].width*zoom, 
+							buttons['btn_right'].height*zoom);
+							
+	viewportCtx.drawImage(buttons['btn_left'].sprite, 
+							buttons['btn_left'].position.x*zoom, 
+							buttons['btn_left'].position.y*zoom, 
+							buttons['btn_left'].width*zoom, 
+							buttons['btn_left'].height*zoom);
 	
-	
-	//panelBuildCanvas
 	viewportCtx.drawImage(panelBuildCanvas,  _PANEL_BUILD_OFFSET_X, _PANEL_BUILD_OFFSET_Y);
 	
 	
@@ -456,19 +517,11 @@ function drawViewPortMap(){
 		console.info("");
 	}*/
 }
-var _PANEL_BUILD_OFFSET_X = 0;
-var _PANEL_BUILD_OFFSET_Y = -(viewportRowsCols*zoom);
 
-//var positionA = {x: _PANEL_BUILD_OFFSET_X, y: _PANEL_BUILD_OFFSET_Y, rotation: 0};
-//var positionB = {x: 0, y: 0, rotation: 0};
-var tween;
 
 // https://github.com/sole/tween.js/blob/master/src/Tween.js
 function tweenPannelBuild(positionStart, positionEnd){
-	
-	//console.dir(positionStart);
-	//console.dir(positionEnd);
-	
+
 	tween = new TWEEN.Tween( positionStart )
 	.to( positionEnd, 1000 )
 	.easing( TWEEN.Easing.Exponential.InOut )
@@ -479,7 +532,6 @@ function tweenPannelBuild(positionStart, positionEnd){
 
 	} )
 	.start();
-	
 }
 
 function updatePanelBuild(){
@@ -495,6 +547,16 @@ function updatePanelBuild(){
 	panelBuildContext.strokeStyle = '#B7863C';
 	panelBuildContext.stroke();
 	panelBuildContext.restore();
+	
+	
+	panelBuildContext.drawImage(sprites[_TILE_HOUSE], 1*zoom, 1*zoom, zoom, zoom);
+	
+	panelBuildContext.drawImage(buttons['btn_buy_house'].sprite, 
+								buttons['btn_buy_house'].position.x*zoom, 
+								buttons['btn_buy_house'].position.y*zoom, 
+								buttons['btn_buy_house'].width*zoom, 
+								buttons['btn_buy_house'].height*zoom);
+	
 }
 
 function drawBufferPlayers(){
@@ -575,6 +637,10 @@ function drawBufferPanel(){
 	panelContext.fillText(players[selectedPlayer].wood, dataMarginLeft, startline);
 	startline += lineHeight;
 	
+	panelContext.fillText("Gold", labelMarginLeft, startline);
+	panelContext.fillText(players[selectedPlayer].or, dataMarginLeft, startline);
+	startline += lineHeight;
+	
 	/*panelContext.fillText("Rock", labelMarginLeft, startline);
 	panelContext.fillText(players[selectedPlayer].rock, dataMarginLeft, startline);
 	startline += lineHeight;
@@ -607,7 +673,7 @@ function drawBufferWoodAxe(){
 		for(var i = 0; i < viewportWoodAxeMap.length; i++){
 			for(var j = 0; j < viewportWoodAxeMap[i].length; j++){
 				if(viewportWoodAxeMap[i][j]==2){
-					bufferWoodAxeContext.drawImage(sprites[_TILE_AXE], (i*zoom)+(zoom*0.25), (j*zoom)+(zoom*0.25), viewportTileSize, viewportTileSize);
+					bufferWoodAxeContext.drawImage(sprites[_TILE_AXE], (i*zoom)+(zoom*0.25), (j*zoom)+(zoom*0.25), viewportTileSize*(zoomOffset*0.5), viewportTileSize*(zoomOffset*0.5));
 				}
 			}
 		}
@@ -623,7 +689,7 @@ function drawBufferMoves(){
 		for(var i = 0; i < viewportMovesMap.length; i++){
 			for(var j = 0; j < viewportMovesMap[i].length; j++){
 				if(viewportMovesMap[i][j]==2){
-					bufferMovesContext.drawImage(sprites[_TILE_MOVES], (i*zoom)+(zoom*0.25), (j*zoom)+(zoom*0.25), viewportTileSize, viewportTileSize);
+					bufferMovesContext.drawImage(sprites[_TILE_MOVES], (i*zoom)+(zoom*0.25), (j*zoom)+(zoom*0.25), viewportTileSize*(zoomOffset*0.5), viewportTileSize*(zoomOffset*0.5));
 				}
 			}
 		}
@@ -639,13 +705,29 @@ function drawBufferAttack(){
 		for(var i = 0; i < viewportAttackMap.length; i++){
 			for(var j = 0; j < viewportAttackMap[i].length; j++){
 				if(viewportAttackMap[i][j]==2){
-					bufferAttackContext.drawImage(sprites[_TILE_ATTACK], (i*zoom)+(zoom*0.25), (j*zoom)+(zoom*0.25), viewportTileSize, viewportTileSize);
+					bufferAttackContext.drawImage(sprites[_TILE_ATTACK], (i*zoom)+(zoom*0.25), (j*zoom)+(zoom*0.25), viewportTileSize*(zoomOffset*0.5), viewportTileSize*(zoomOffset*0.5));
 				}
 			}
 		}
 	}
 }
 
+function drawBufferBuild(){
+	
+	if(bBuild && viewportBuildMap != null){
+		bufferBuildContext.clearRect(0, 0, viewportCanvas.height, viewportCanvas.width);
+		
+		for(var i = 0; i < viewportBuildMap.length; i++){
+			for(var j = 0; j < viewportBuildMap[i].length; j++){
+				if(viewportBuildMap[i][j]==2){
+					bufferBuildContext.drawImage(sprites[_TILE_HAMMER], (i*zoom)+(zoom*0.25), (j*zoom)+(zoom*0.25), viewportTileSize*(zoomOffset*0.5), viewportTileSize*(zoomOffset*0.5));
+				}
+			}
+		}
+		
+	}
+	
+}
 
 function drawBufferFOV(){
 	// FOV Shadow
@@ -1061,7 +1143,8 @@ function updateViewPortMoves(x,y){
 				|| viewportMap[i][j].type == _TILE_TREE
 				|| viewportMap[i][j].type == _TILE_TREE_2
 				|| viewportMap[i][j].type == _TILE_TREE_3
-				|| viewportMap[i][j].type == _TILE_EMPTY ){
+				|| viewportMap[i][j].type == _TILE_EMPTY
+				|| viewportMap[i][j].type == _TILE_HOUSE ){
 				viewportMovesMap[i][j] = 1;
 			} else {
 				viewportMovesMap[i][j] = 0;
@@ -1176,8 +1259,36 @@ function updateViewPortAttack(x,y){
 			
 		}
 	}
+}
+
+
+function updateViewPortBuild(x,y){
 	
+	var plx = x,
+		ply = y;
 	
+	viewportBuildMap = create2DArray(viewportRowsCols, viewportRowsCols);
+	
+	for(var i=0; i < viewportRowsCols; i++){
+		for(var j = 0; j < viewportRowsCols; j++){
+			if( viewportMap[i][j].type == _TILE_WATER 
+				|| viewportMap[i][j].type == _TILE_TREE
+				|| viewportMap[i][j].type == _TILE_TREE_2
+				|| viewportMap[i][j].type == _TILE_TREE_3
+				|| viewportMap[i][j].type == _TILE_EMPTY
+				|| viewportMap[i][j].type == _TILE_GRASS_MEDIUM
+				|| viewportMap[i][j].type == _TILE_GRASS_HARD
+				|| viewportMap[i][j].type == _TILE_SAND
+				|| viewportMap[i][j].type == _TILE_HOUSE
+				 ){
+				viewportBuildMap[i][j] = 1;
+			} else {
+				viewportBuildMap[i][j] = 0;
+			}
+		}
+	}
+	
+	updateBufferViewObject(viewportBuildMap, plx, ply, _MVT);
 	
 }
 

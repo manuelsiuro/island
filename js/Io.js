@@ -155,16 +155,38 @@ function handleClick(x, y) {
 			}  
 		}
 		
-		// Map Layer move
+		// Map Layer move attack cutWood build
 		if(typeof viewportMap[_GRID_X][_GRID_Y] != 'undefined'){
+			
+			
+			
+			
+			//build
+			if( viewportBuildMap[_GRID_X][_GRID_Y] == 2
+				&& bBuild 
+				&& !bPannelBuildVisible 
+				&& notPlayerGrid(_GRID_X, _GRID_Y) 
+				&& players[selectedPlayer].currentmoves <  players[selectedPlayer].moves ){
+					
+					console.log("build");
+					
+					bPannelBuildVisible = true;
+					
+					var positionA = {x: 0, y: -(viewportRowsCols*zoom), rotation: 0};
+					var positionB = {x: 0, y: 0, rotation: 0};
+					tweenPannelBuild(positionA, positionB);
+					
+					_BUILD_X = _GRID_X;
+					_BUILD_Y = _GRID_Y;
+					
+			}
+			
 			
 			//attack
 			if( viewportAttackMap[_GRID_X][_GRID_Y] == 2
 				&& bAttack 
 				&& notPlayerGrid(_GRID_X, _GRID_Y) 
 				&& players[selectedPlayer].currentmoves <  players[selectedPlayer].moves ){
-					
-					//console.log('attaack');
 					
 					for(var p = 0; p < players.length; p++ ){
 						if( players[p].map_index == viewportMap[_GRID_X][_GRID_Y].index
@@ -176,9 +198,11 @@ function handleClick(x, y) {
 								if( players[p].life > 0) {
 									players[p].life--;
 									players[selectedPlayer].xp++;
+									players[selectedPlayer].or += 1;
 								} else {
 									players[p].alive = false;
 									players[selectedPlayer].xp += 10;
+									players[selectedPlayer].or += 10;
 								}
 								
 								players[selectedPlayer].currentmoves++;
@@ -360,32 +384,13 @@ function handleClick(x, y) {
 						bWoodHaxe = false;
 						bAttack = false;
 						
-						if(bPannelBuildVisible){
-						var positionA = {x: 0, y: -(viewportRowsCols*zoom), rotation: 0};
-						var positionB = {x: 0, y: 0, rotation: 0};
-						tweenPannelBuild(positionB, positionA);
-						console.log("HIDE");
-					}
-					else {
-						var positionA = {x: 0, y: -(viewportRowsCols*zoom), rotation: 0};
-						var positionB = {x: 0, y: 0, rotation: 0};
-						tweenPannelBuild(positionA, positionB);
-						console.log("SHOW");
-					}
-						
-					bPannelBuildVisible = !bPannelBuildVisible;
-						
 						bBuild = !bBuild;
 						bUpdate = true;
 				}
 				
 				if( key == 'btn_fov' ){
-					// FOV
-					/**/
 					bFovEnable = !bFovEnable;
 					bUpdate = true;
-					
-					
 				}
 				
 				if( key == 'btn_right' ){
@@ -410,6 +415,39 @@ function handleClick(x, y) {
 						bUpdate = true;
 					} else {
 						selectedPlayer = players.length-1;
+						bUpdate = true;
+					}
+				}
+				
+				//btn_buy_house
+				if( key == 'btn_buy_house' ){
+					/*console.log("btn_buy_house");
+					console.log("_BUILD_X:"+_BUILD_X);
+					console.log("_BUILD_Y:"+_BUILD_Y);*/
+					
+					if(bPannelBuildVisible){
+				
+						var positionA = {x: 0, y: -(viewportRowsCols*zoom), rotation: 0};
+						var positionB = {x: 0, y: 0, rotation: 0};
+						tweenPannelBuild(positionB, positionA);
+						
+						var building = new Buildings(0, players[selectedPlayer].team);
+						
+						console.dir(building);
+						
+						if( players[selectedPlayer].or >= building.cost.or 
+							&& players[selectedPlayer].wood >= building.cost.wood ){
+							
+							viewportMap[_BUILD_X][_BUILD_Y].type = _TILE_HOUSE;
+							_TILES_MAP[viewportMap[_GRID_X][_GRID_Y].x][viewportMap[_GRID_X][_GRID_Y].y].type = _TILE_HOUSE;
+						
+							players[selectedPlayer].currentmoves++;
+							players[selectedPlayer].or -= building.cost.or;
+							players[selectedPlayer].wood -= building.cost.wood;
+						}
+						bPannelBuildVisible = false;
+						bBuild = false;
+						
 						bUpdate = true;
 					}
 				}
