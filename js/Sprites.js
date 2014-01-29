@@ -31,7 +31,9 @@ sprites_img.onload = function(){
 	sprites[_TILE_ATTACK] = makeSprite(11,4, false); // attack
 	sprites[_TILE_HAMMER] = makeSprite(12,4, false); // marteau
 	
-	sprites[_TILE_HOUSE] = makeSprite(13,4, false); // marteau
+	sprites[_TILE_HOUSE] = makeSprite(13,4, false); // Maison
+	sprites[_TILE_FARM] = makeSprite(14,4, false); // Ferme
+	sprites[_TILE_SAWMILL] = makeSprite(15,4, false); // Scierie
 	
 	
 	sprites[_TILE_PANEL] = makePanel(10,11,160,80);

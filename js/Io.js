@@ -168,13 +168,13 @@ function handleClick(x, y) {
 				&& notPlayerGrid(_GRID_X, _GRID_Y) 
 				&& players[selectedPlayer].currentmoves <  players[selectedPlayer].moves ){
 					
-					console.log("build");
+					//console.log("build");
 					
-					bPannelBuildVisible = true;
+					//bPannelBuildVisible = true;
 					
 					var positionA = {x: 0, y: -(viewportRowsCols*zoom), rotation: 0};
 					var positionB = {x: 0, y: 0, rotation: 0};
-					tweenPannelBuild(positionA, positionB);
+					tweenPannelBuild(positionA, positionB, true);
 					
 					_BUILD_X = _GRID_X;
 					_BUILD_Y = _GRID_Y;
@@ -419,35 +419,66 @@ function handleClick(x, y) {
 					}
 				}
 				
-				//btn_buy_house
-				if( key == 'btn_buy_house' ){
-					/*console.log("btn_buy_house");
-					console.log("_BUILD_X:"+_BUILD_X);
-					console.log("_BUILD_Y:"+_BUILD_Y);*/
+				if( key == 'btn_widget_build_left' ){
 					
+					console.log('btn_widget_build_left');
+					
+					if(widgetBuildIndex < buildingsList.length-1){
+						var positionA = {x: _WIDGET_BUILD_OFFSET_X, y: _WIDGET_BUILD_OFFSET_Y, rotation: 0};
+						var positionB = {x: _WIDGET_BUILD_OFFSET_X-(9*zoom), y: 0, rotation: 0};
+						tweenWidgetBuild(positionA, positionB);
+						widgetBuildIndex++;
+					}
+				}
+				
+				if( key == 'btn_widget_build_right' ){
+					
+					console.log('btn_widget_build_right');
+					
+					if(widgetBuildIndex > 0){
+						var positionA = {x: _WIDGET_BUILD_OFFSET_X, y: _WIDGET_BUILD_OFFSET_Y, rotation: 0};
+						var positionB = {x: _WIDGET_BUILD_OFFSET_X+(9*zoom), y: 0, rotation: 0};
+						tweenWidgetBuild(positionA, positionB);
+						widgetBuildIndex--;
+					}
+				}
+				
+				if( key == 'btn_buy_house' ){
+					
+					/*
+					console.log("btn_buy_house");
+					console.log("_BUILD_X:"+_BUILD_X);
+					console.log("_BUILD_Y:"+_BUILD_Y);
+					console.log("_BUILD_Y:"+_BUILD_Y);
+					*/
+					//alert(widgetBuildIndex);
+
 					if(bPannelBuildVisible){
 				
 						var positionA = {x: 0, y: -(viewportRowsCols*zoom), rotation: 0};
 						var positionB = {x: 0, y: 0, rotation: 0};
-						tweenPannelBuild(positionB, positionA);
+						tweenPannelBuild(positionB, positionA, false);
 						
-						var building = new Buildings(0, players[selectedPlayer].team);
+						var building = buildingsObjectList[widgetBuildIndex];
 						
-						console.dir(building);
+						//console.dir(building);
 						
 						if( players[selectedPlayer].or >= building.cost.or 
 							&& players[selectedPlayer].wood >= building.cost.wood ){
 							
-							viewportMap[_BUILD_X][_BUILD_Y].type = _TILE_HOUSE;
-							_TILES_MAP[viewportMap[_GRID_X][_GRID_Y].x][viewportMap[_GRID_X][_GRID_Y].y].type = _TILE_HOUSE;
+							//viewportMap[_BUILD_X][_BUILD_Y].type = _TILE_HOUSE;
+							_TILES_MAP[viewportMap[_BUILD_X][_BUILD_Y].x][viewportMap[_BUILD_X][_BUILD_Y].y].type = buildingsList[widgetBuildIndex];
 						
 							players[selectedPlayer].currentmoves++;
 							players[selectedPlayer].or -= building.cost.or;
 							players[selectedPlayer].wood -= building.cost.wood;
 						}
+						
+						_WIDGET_BUILD_OFFSET_X = 0;
+						_WIDGET_BUILD_OFFSET_Y = 0;
+						
 						bPannelBuildVisible = false;
 						bBuild = false;
-						
 						bUpdate = true;
 					}
 				}

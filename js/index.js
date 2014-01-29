@@ -26,6 +26,8 @@ var _MAP_PIXEL_DIMENSION = 64,
 	panelContext = panelCanvas.getContext('2d'),
 	panelBuildCanvas = document.createElement('canvas'),
 	panelBuildContext = panelBuildCanvas.getContext('2d'),
+	widgetBuildCanvas = document.createElement('canvas'),
+	widgetBuildContext = widgetBuildCanvas.getContext('2d'),
 	viewportTileSize = 16,
 	viewportRowsCols = 9,
 	viewportOffsetRowsCols = viewportRowsCols-1,
@@ -65,6 +67,8 @@ var _MAP_PIXEL_DIMENSION = 64,
 	_TILE_TREE = 20,
 	_TILE_TREE_2 = 21,
 	_TILE_TREE_3 = 22,
+	_TILE_FARM = 23,
+	_TILE_SAWMILL = 24,
 	rangeWaterStart = 0,
 	rangeWaterEnd = 0,
 	rangeSandStart = 0,
@@ -112,9 +116,20 @@ var _MAP_PIXEL_DIMENSION = 64,
 	players = [],
 	selectedPlayer = 0,
 	currentTurnTeam = 0,
+	_MAP_OFFSET_X = 0,
+	_MAP_OFFSET_Y = 0,
 	_PANEL_BUILD_OFFSET_X = 0,
 	_PANEL_BUILD_OFFSET_Y = -(viewportRowsCols*zoom),
-	tween;
+	_WIDGET_BUILD_OFFSET_X = 0,
+	_WIDGET_BUILD_OFFSET_Y = 0,
+	tween,
+	tweenwidgetBuild, 
+	_BUILDING_HOUSE = new Buildings(_TILE_HOUSE),
+	_BUILDING_FARM = new Buildings(_TILE_FARM),
+	_BUILDING_SAWMILL = new Buildings(_TILE_SAWMILL),
+	buildingsList = [_TILE_HOUSE, _TILE_FARM, _TILE_SAWMILL],
+	buildingsObjectList = [_BUILDING_HOUSE, _BUILDING_FARM, _BUILDING_SAWMILL],
+	widgetBuildIndex = 0;
 							  
 /* ------------------------------------------------------------------------------------------------------------------------------------------- */
 /* ------------------------------------------------------------------------------------------------------------------------------------------- */
@@ -190,11 +205,24 @@ function init(){
 	panelBuildCanvas.width = _SCREEN_WIDTH;
 	panelBuildCanvas.height = _SCREEN_HEIGHT;
 	
+	widgetBuildCanvas.width = _SCREEN_WIDTH*buildingsList.length;
+	widgetBuildCanvas.height = _SCREEN_HEIGHT;
+	
 	panelContext.font = '14px silkscreennormal, cursive';
+	
+	
+	_BUILDING_HOUSE.cost.or = 4,
+	_BUILDING_HOUSE.cost.wood = 4,
+	
+	_BUILDING_FARM.cost.or = 8,
+	_BUILDING_FARM.cost.wood = 8,
+	
+	_BUILDING_SAWMILL.cost.or = 12,
+	_BUILDING_SAWMILL.cost.wood = 20,
 		
 	window.scrollTo( 0, 1 );
 	
-	// On genere le terrain sur le onload de l'image
+	// On genere le terrain 'terrainGeneration' sur le onload de l'image 'sprites_img'
 	sprites_img.src = "img/sprites.png";	
 }
 
@@ -297,6 +325,30 @@ function terrainGeneration(){
 		value: 'btn_buy_house'
 	};
 	
+	buttons['btn_widget_build_left'] = {				
+		sprite: makeButton({x:6, y:15, width:1, height:1, flip: true}),
+		width: 1,
+		height: 1,
+		position: {
+			x: 1,
+			y: 4
+		},
+		action: 'btn_widget_build_left',
+		value: 'btn_widget_build_left'
+	};
+	
+	buttons['btn_widget_build_right'] = {				
+		sprite: makeButton({x:6, y:15, width:1, height:1}),
+		width: 1,
+		height: 1,
+		position: {
+			x: 7,
+			y: 4
+		},
+		action: 'btn_widget_build_right',
+		value: 'btn_widget_build_right'
+	};
+	
 	
 	// Add random player
 	var team = 0;
@@ -376,7 +428,7 @@ function update(){
 	updateViewPortPlayers();
 	
 	if(bBuild)
-		updatePanelBuild();
+		updateBuildWidget(), updatePanelBuild();
 	
 	
 		
@@ -400,18 +452,12 @@ function update(){
 	if(bBuild)
 		drawBufferBuild();
 	
-	
 	drawBufferPanel();
 }
 
 function redraw(){
-	
 	drawViewPortMap();
-	//drawViewportPlayer();
 }
-
-var _MAP_OFFSET_X = 0;
-var _MAP_OFFSET_Y = 0;
 
 function drawViewPortMap(){
 	
@@ -490,6 +536,9 @@ function drawViewPortMap(){
 	
 	viewportCtx.drawImage(panelBuildCanvas,  _PANEL_BUILD_OFFSET_X, _PANEL_BUILD_OFFSET_Y);
 	
+	if(bPannelBuildVisible)
+		viewportCtx.drawImage(widgetBuildCanvas, _WIDGET_BUILD_OFFSET_X, _WIDGET_BUILD_OFFSET_Y);
+	
 	
 	// Collision and Astar
 	/*if(viewportCollisionMap != null && currentPath.length > 0 && frame == 0){
@@ -521,7 +570,7 @@ function drawViewPortMap(){
 
 
 // https://github.com/sole/tween.js/blob/master/src/Tween.js
-function tweenPannelBuild(positionStart, positionEnd){
+function tweenPannelBuild(positionStart, positionEnd, show){
 
 	tween = new TWEEN.Tween( positionStart )
 	.to( positionEnd, 1000 )
@@ -531,6 +580,14 @@ function tweenPannelBuild(positionStart, positionEnd){
 		_PANEL_BUILD_OFFSET_X = this.x;
 		_PANEL_BUILD_OFFSET_Y = this.y;
 
+	} )
+	.onComplete ( function () {
+		
+		if(show)
+			bPannelBuildVisible = true;
+		else
+			widgetBuildIndex = 0;
+		
 	} )
 	.start();
 }
@@ -548,16 +605,50 @@ function updatePanelBuild(){
 	panelBuildContext.strokeStyle = '#B7863C';
 	panelBuildContext.stroke();
 	panelBuildContext.restore();
-	
-	
-	panelBuildContext.drawImage(sprites[_TILE_HOUSE], 1*zoom, 1*zoom, zoom, zoom);
+
+	panelBuildContext.drawImage(buttons['btn_widget_build_left'].sprite, 
+								buttons['btn_widget_build_left'].position.x*zoom, 
+								buttons['btn_widget_build_left'].position.y*zoom, 
+								buttons['btn_widget_build_left'].width*zoom, 
+								buttons['btn_widget_build_left'].height*zoom);
+
+	panelBuildContext.drawImage(buttons['btn_widget_build_right'].sprite, 
+								buttons['btn_widget_build_right'].position.x*zoom, 
+								buttons['btn_widget_build_right'].position.y*zoom, 
+								buttons['btn_widget_build_right'].width*zoom, 
+								buttons['btn_widget_build_right'].height*zoom);
 	
 	panelBuildContext.drawImage(buttons['btn_buy_house'].sprite, 
 								buttons['btn_buy_house'].position.x*zoom, 
 								buttons['btn_buy_house'].position.y*zoom, 
 								buttons['btn_buy_house'].width*zoom, 
 								buttons['btn_buy_house'].height*zoom);
+}
+
+function updateBuildWidget(){
 	
+	widgetBuildContext.clearRect(0, 0, viewportCanvas.height, viewportCanvas.width);
+	
+	var startX = 4;
+	
+	for(var i=0; i<buildingsList.length; i++){
+		widgetBuildContext.drawImage(sprites[buildingsList[i]], startX*zoom, 4*zoom, zoom, zoom);
+		startX += viewportRowsCols;
+	}
+}
+
+function tweenWidgetBuild(positionStart, positionEnd){
+
+	tweenwidgetBuild = new TWEEN.Tween( positionStart )
+	.to( positionEnd, 500 )
+	.easing( TWEEN.Easing.Exponential.InOut )
+	.onUpdate( function () {
+		
+		_WIDGET_BUILD_OFFSET_X = this.x;
+		_WIDGET_BUILD_OFFSET_Y = this.y;
+
+	} )
+	.start();
 }
 
 function drawBufferPlayers(){
@@ -1081,7 +1172,7 @@ function makePanel(x,y,w,h){
 	return m_canvas;
 }
 
-function updateViewPortCollisionMap(){
+/*function updateViewPortCollisionMap(){
 	
 	viewportCollisionMap = create2DArray(viewportRowsCols, viewportRowsCols);
 	
@@ -1099,7 +1190,7 @@ function updateViewPortCollisionMap(){
 			}
 		}
 	}
-}
+}*/
 
 function getViewPortCollisionMap(){
 	return 	viewportCollisionMap;
@@ -1145,7 +1236,10 @@ function updateViewPortMoves(x,y){
 				|| viewportMap[i][j].type == _TILE_TREE_2
 				|| viewportMap[i][j].type == _TILE_TREE_3
 				|| viewportMap[i][j].type == _TILE_EMPTY
-				|| viewportMap[i][j].type == _TILE_HOUSE ){
+				|| viewportMap[i][j].type == _TILE_HOUSE
+				|| viewportMap[i][j].type == _TILE_FARM
+				|| viewportMap[i][j].type == _TILE_SAWMILL
+				 ){
 				viewportMovesMap[i][j] = 1;
 			} else {
 				viewportMovesMap[i][j] = 0;
@@ -1281,6 +1375,8 @@ function updateViewPortBuild(x,y){
 				|| viewportMap[i][j].type == _TILE_GRASS_HARD
 				|| viewportMap[i][j].type == _TILE_SAND
 				|| viewportMap[i][j].type == _TILE_HOUSE
+				|| viewportMap[i][j].type == _TILE_FARM
+				|| viewportMap[i][j].type == _TILE_SAWMILL
 				 ){
 				viewportBuildMap[i][j] = 1;
 			} else {
