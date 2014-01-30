@@ -69,6 +69,9 @@ var _MAP_PIXEL_DIMENSION = 64,
 	_TILE_TREE_3 = 22,
 	_TILE_FARM = 23,
 	_TILE_SAWMILL = 24,
+	_TILE_STONE_QUARRY = 25,
+	_TILE_CONFIRM = 26,
+	_TILE_CANCEL = 27,
 	rangeWaterStart = 0,
 	rangeWaterEnd = 0,
 	rangeSandStart = 0,
@@ -127,8 +130,9 @@ var _MAP_PIXEL_DIMENSION = 64,
 	_BUILDING_HOUSE = new Buildings(_TILE_HOUSE),
 	_BUILDING_FARM = new Buildings(_TILE_FARM),
 	_BUILDING_SAWMILL = new Buildings(_TILE_SAWMILL),
-	buildingsList = [_TILE_HOUSE, _TILE_FARM, _TILE_SAWMILL],
-	buildingsObjectList = [_BUILDING_HOUSE, _BUILDING_FARM, _BUILDING_SAWMILL],
+	_BUILDING_STONE_QUARRY = new Buildings(_TILE_STONE_QUARRY),
+	buildingsList = [_TILE_HOUSE, _TILE_FARM, _TILE_SAWMILL, _TILE_STONE_QUARRY],
+	buildingsObjectList = [_BUILDING_HOUSE, _BUILDING_FARM, _BUILDING_SAWMILL, _BUILDING_STONE_QUARRY],
 	widgetBuildIndex = 0;
 							  
 /* ------------------------------------------------------------------------------------------------------------------------------------------- */
@@ -210,15 +214,25 @@ function init(){
 	
 	panelContext.font = '14px silkscreennormal, cursive';
 	
-	
+	_BUILDING_HOUSE.name = "HOUSE",
+	_BUILDING_HOUSE.description = ["HOUSE, Lorem ipsum dolor sit", "consectetur adipisicing elit", "sed do eiusmod tempor incidi", "ut labore et dolore magna ali."],
 	_BUILDING_HOUSE.cost.or = 4,
 	_BUILDING_HOUSE.cost.wood = 4,
 	
+	_BUILDING_FARM.name = "FARM",
+	_BUILDING_FARM.description = ["FARM, Lorem ipsum dolor sit", "consectetur adipisicing elit", "sed do eiusmod tempor incidi", "ut labore et dolore magna ali."],
 	_BUILDING_FARM.cost.or = 8,
 	_BUILDING_FARM.cost.wood = 8,
 	
+	_BUILDING_SAWMILL.name = "SAW MILL",
+	_BUILDING_SAWMILL.description = ["SAW MILL, Lorem ipsum dolor sit", "consectetur adipisicing elit", "sed do eiusmod tempor incidi", "ut labore et dolore magna ali."],
 	_BUILDING_SAWMILL.cost.or = 12,
 	_BUILDING_SAWMILL.cost.wood = 20,
+	
+	_BUILDING_STONE_QUARRY.name = "STONE QUARRY",
+	_BUILDING_STONE_QUARRY.description = ["STONE QUARRY, Lorem ipsum dolor sit", "consectetur adipisicing elit", "sed do eiusmod tempor incidi", "ut labore et dolore magna ali."],
+	_BUILDING_STONE_QUARRY.cost.or = 22,
+	_BUILDING_STONE_QUARRY.cost.wood = 30,
 		
 	window.scrollTo( 0, 1 );
 	
@@ -314,7 +328,7 @@ function terrainGeneration(){
 	};
 	
 	buttons['btn_buy_house'] = {				
-		sprite: makeButton({x:6, y:15, width:1, height:1}),
+		sprite: makeButton({x:5, y:15, width:1, height:1, icon: _TILE_CONFIRM}),
 		width: 1,
 		height: 1,
 		position: {
@@ -325,13 +339,25 @@ function terrainGeneration(){
 		value: 'btn_buy_house'
 	};
 	
+	buttons['btn_cancel_house'] = {				
+		sprite: makeButton({x:5, y:15, width:1, height:1, icon: _TILE_CANCEL}),
+		width: 1,
+		height: 1,
+		position: {
+			x: 1,
+			y: 7
+		},
+		action: 'btn_cancel_house',
+		value: 'btn_cancel_house'
+	};
+	
 	buttons['btn_widget_build_left'] = {				
 		sprite: makeButton({x:6, y:15, width:1, height:1, flip: true}),
 		width: 1,
 		height: 1,
 		position: {
 			x: 1,
-			y: 4
+			y: 2
 		},
 		action: 'btn_widget_build_left',
 		value: 'btn_widget_build_left'
@@ -343,7 +369,7 @@ function terrainGeneration(){
 		height: 1,
 		position: {
 			x: 7,
-			y: 4
+			y: 2
 		},
 		action: 'btn_widget_build_right',
 		value: 'btn_widget_build_right'
@@ -357,6 +383,9 @@ function terrainGeneration(){
 		if(team==1)team=-1;
 		team++;
 	}
+	
+	// On dessine une seule foi la liste de batiments dispo
+	updateBuildWidget();
 	
 	generateMap();
 	
@@ -428,7 +457,7 @@ function update(){
 	updateViewPortPlayers();
 	
 	if(bBuild)
-		updateBuildWidget(), updatePanelBuild();
+		updatePanelBuild();
 	
 	
 		
@@ -594,6 +623,8 @@ function tweenPannelBuild(positionStart, positionEnd, show){
 
 function updatePanelBuild(){
 	
+	console.log("updatePanelBuild widgetBuildIndex:"+widgetBuildIndex);
+	
 	panelBuildContext.clearRect(0, 0, viewportCanvas.height, viewportCanvas.width);
 	
 	panelBuildContext.save();
@@ -605,35 +636,70 @@ function updatePanelBuild(){
 	panelBuildContext.strokeStyle = '#B7863C';
 	panelBuildContext.stroke();
 	panelBuildContext.restore();
-
-	panelBuildContext.drawImage(buttons['btn_widget_build_left'].sprite, 
-								buttons['btn_widget_build_left'].position.x*zoom, 
-								buttons['btn_widget_build_left'].position.y*zoom, 
-								buttons['btn_widget_build_left'].width*zoom, 
-								buttons['btn_widget_build_left'].height*zoom);
-
-	panelBuildContext.drawImage(buttons['btn_widget_build_right'].sprite, 
-								buttons['btn_widget_build_right'].position.x*zoom, 
-								buttons['btn_widget_build_right'].position.y*zoom, 
-								buttons['btn_widget_build_right'].width*zoom, 
-								buttons['btn_widget_build_right'].height*zoom);
 	
+	//widgetBuildIndex
+
+	if(widgetBuildIndex < buildingsList.length-1){
+
+		panelBuildContext.drawImage(buttons['btn_widget_build_left'].sprite, 
+									buttons['btn_widget_build_left'].position.x*zoom, 
+									buttons['btn_widget_build_left'].position.y*zoom, 
+									buttons['btn_widget_build_left'].width*zoom, 
+									buttons['btn_widget_build_left'].height*zoom);
+	}
+
+
+	if(widgetBuildIndex > 0){	
+		panelBuildContext.drawImage(buttons['btn_widget_build_right'].sprite, 
+									buttons['btn_widget_build_right'].position.x*zoom, 
+									buttons['btn_widget_build_right'].position.y*zoom, 
+									buttons['btn_widget_build_right'].width*zoom, 
+									buttons['btn_widget_build_right'].height*zoom);
+	}
+
+	panelBuildContext.drawImage(buttons['btn_cancel_house'].sprite, 
+								buttons['btn_cancel_house'].position.x*zoom, 
+								buttons['btn_cancel_house'].position.y*zoom, 
+								buttons['btn_cancel_house'].width*zoom, 
+								buttons['btn_cancel_house'].height*zoom);
+								
 	panelBuildContext.drawImage(buttons['btn_buy_house'].sprite, 
 								buttons['btn_buy_house'].position.x*zoom, 
 								buttons['btn_buy_house'].position.y*zoom, 
 								buttons['btn_buy_house'].width*zoom, 
 								buttons['btn_buy_house'].height*zoom);
+
 }
 
 function updateBuildWidget(){
 	
 	widgetBuildContext.clearRect(0, 0, viewportCanvas.height, viewportCanvas.width);
+	widgetBuildContext.font = pannelFontSize+'px silkscreennormal, cursive';
+	widgetBuildContext.fillStyle = 'black';
 	
 	var startX = 4;
+	var startXdescription = 0.5;
 	
 	for(var i=0; i<buildingsList.length; i++){
-		widgetBuildContext.drawImage(sprites[buildingsList[i]], startX*zoom, 4*zoom, zoom, zoom);
+		
+		widgetBuildContext.fillText(buildingsObjectList[i].name, (startX-1)*zoom, 0.5*zoom);
+		
+		widgetBuildContext.drawImage(sprites[buildingsList[i]], startX*zoom, 2*zoom, zoom, zoom);
+		
+		widgetBuildContext.fillText("GOLD:" + buildingsObjectList[i].cost.or, (startX-1)*zoom, 3.5*zoom);
+		widgetBuildContext.fillText("WOOD:" + buildingsObjectList[i].cost.wood, (startX-1)*zoom, 4*zoom);
+		
+		//widgetBuildContext.fillText(buildingsObjectList[i].description, startXdescription*zoom, 7*zoom);
+		
+		for (var j = 0; j < buildingsObjectList[i].description.length; j++) {				
+				widgetBuildContext.fillText(buildingsObjectList[i].description[j], startXdescription*zoom , 5*zoom + (j*(zoom*0.5)));		
+			};
+		
+		
+		
+		
 		startX += viewportRowsCols;
+		startXdescription += viewportRowsCols;
 	}
 }
 
@@ -1112,6 +1178,14 @@ function makeButton(args){
 		if(args.icon == _TILE_HAMMER )
 			sprX = 12,
 			sprY = 4;
+			
+		if(args.icon == _TILE_CONFIRM )
+			sprX = 7,
+			sprY = 1;
+			
+		if(args.icon == _TILE_CANCEL )
+			sprX = 5,
+			sprY = 1;
 		
 			m_context.drawImage(sprites_img, -sprX*viewportTileSize, -sprY*viewportTileSize);
 			
@@ -1239,6 +1313,7 @@ function updateViewPortMoves(x,y){
 				|| viewportMap[i][j].type == _TILE_HOUSE
 				|| viewportMap[i][j].type == _TILE_FARM
 				|| viewportMap[i][j].type == _TILE_SAWMILL
+				|| viewportMap[i][j].type == _TILE_STONE_QUARRY
 				 ){
 				viewportMovesMap[i][j] = 1;
 			} else {
@@ -1377,6 +1452,7 @@ function updateViewPortBuild(x,y){
 				|| viewportMap[i][j].type == _TILE_HOUSE
 				|| viewportMap[i][j].type == _TILE_FARM
 				|| viewportMap[i][j].type == _TILE_SAWMILL
+				|| viewportMap[i][j].type == _TILE_STONE_QUARRY
 				 ){
 				viewportBuildMap[i][j] = 1;
 			} else {

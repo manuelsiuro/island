@@ -428,6 +428,10 @@ function handleClick(x, y) {
 						var positionB = {x: _WIDGET_BUILD_OFFSET_X-(9*zoom), y: 0, rotation: 0};
 						tweenWidgetBuild(positionA, positionB);
 						widgetBuildIndex++;
+						/**/
+						bBuild = true;
+						bUpdate = true;
+						
 					}
 				}
 				
@@ -440,6 +444,9 @@ function handleClick(x, y) {
 						var positionB = {x: _WIDGET_BUILD_OFFSET_X+(9*zoom), y: 0, rotation: 0};
 						tweenWidgetBuild(positionA, positionB);
 						widgetBuildIndex--;
+						
+						bBuild = true;
+						bUpdate = true;
 					}
 				}
 				
@@ -482,6 +489,21 @@ function handleClick(x, y) {
 						bUpdate = true;
 					}
 				}
+				
+				//btn_cancel_house
+				if( key == 'btn_cancel_house' ){
+					var positionA = {x: 0, y: -(viewportRowsCols*zoom), rotation: 0};
+					var positionB = {x: 0, y: 0, rotation: 0};
+					tweenPannelBuild(positionB, positionA, false);
+						
+					_WIDGET_BUILD_OFFSET_X = 0;
+					_WIDGET_BUILD_OFFSET_Y = 0;
+					
+					bPannelBuildVisible = false;
+					bBuild = false;
+					bUpdate = true;
+				}
+				
 			}
 		}
 		

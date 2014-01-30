@@ -34,6 +34,10 @@ sprites_img.onload = function(){
 	sprites[_TILE_HOUSE] = makeSprite(13,4, false); // Maison
 	sprites[_TILE_FARM] = makeSprite(14,4, false); // Ferme
 	sprites[_TILE_SAWMILL] = makeSprite(15,4, false); // Scierie
+	sprites[_TILE_STONE_QUARRY] = makeSprite(16,4, false); // Mine
+	
+	sprites[_TILE_CONFIRM] = makeSprite(7,1, false); // confirm
+	sprites[_TILE_CANCEL] = makeSprite(5,1, false); // cancel
 	
 	
 	sprites[_TILE_PANEL] = makePanel(10,11,160,80);

@@ -21,10 +21,10 @@ var Player = function(type, team){
 	this.type = type || 0;
 	this.moves = 20;
 	this.currentmoves = 0;
-	this.wood = 50;
+	this.wood = 500;
 	this.rock = 0;
 	this.cuivre = 0;
 	this.fer = 0;
-	this.or = 50;
+	this.or = 500;
 
 }
