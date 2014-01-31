@@ -72,6 +72,10 @@ var _MAP_PIXEL_DIMENSION = 64,
 	_TILE_STONE_QUARRY = 25,
 	_TILE_CONFIRM = 26,
 	_TILE_CANCEL = 27,
+	_TILE_GOLD = 28,
+	_TILE_WOOD = 29,
+	_TILE_WHEAT = 30,
+	_TILE_BRICK = 31,
 	rangeWaterStart = 0,
 	rangeWaterEnd = 0,
 	rangeSandStart = 0,
@@ -213,24 +217,41 @@ function init(){
 	widgetBuildCanvas.height = _SCREEN_HEIGHT;
 	
 	panelContext.font = '14px silkscreennormal, cursive';
+	widgetBuildContext.font = '14px silkscreennormal, cursive';
 	
 	_BUILDING_HOUSE.name = "HOUSE",
-	_BUILDING_HOUSE.description = ["HOUSE, Lorem ipsum dolor sit", "consectetur adipisicing elit", "sed do eiusmod tempor incidi", "ut labore et dolore magna ali."],
+	_BUILDING_HOUSE.description = [
+		"HOUSE, Lorem ipsum dolor sit", 
+		"consectetur adipisicing elit", 
+		"sed do eiusmod tempor incidi", 
+		"ut labore et dolore magna al"],
 	_BUILDING_HOUSE.cost.or = 4,
 	_BUILDING_HOUSE.cost.wood = 4,
 	
 	_BUILDING_FARM.name = "FARM",
-	_BUILDING_FARM.description = ["FARM, Lorem ipsum dolor sit", "consectetur adipisicing elit", "sed do eiusmod tempor incidi", "ut labore et dolore magna ali."],
+	_BUILDING_FARM.description = [
+		"FARM, Lorem ipsum dolor situ", 
+		"consectetur adipisicing elit", 
+		"sed do eiusmod tempor incidi", 
+		"ut labore et dolore magna al"],
 	_BUILDING_FARM.cost.or = 8,
 	_BUILDING_FARM.cost.wood = 8,
 	
 	_BUILDING_SAWMILL.name = "SAW MILL",
-	_BUILDING_SAWMILL.description = ["SAW MILL, Lorem ipsum dolor sit", "consectetur adipisicing elit", "sed do eiusmod tempor incidi", "ut labore et dolore magna ali."],
+	_BUILDING_SAWMILL.description = [
+		"SAW MILL, Lorem ipsum dolora", 
+		"consectetur adipisicing elit", 
+		"sed do eiusmod tempor incidi", 
+		"ut labore et dolore magna al"],
 	_BUILDING_SAWMILL.cost.or = 12,
 	_BUILDING_SAWMILL.cost.wood = 20,
 	
 	_BUILDING_STONE_QUARRY.name = "STONE QUARRY",
-	_BUILDING_STONE_QUARRY.description = ["STONE QUARRY, Lorem ipsum dolor sit", "consectetur adipisicing elit", "sed do eiusmod tempor incidi", "ut labore et dolore magna ali."],
+	_BUILDING_STONE_QUARRY.description = [
+		"STONE QUARRY, Lorem ipsum do", 
+		"consectetur adipisicing elit", 
+		"sed do eiusmod tempor incidi", 
+		"ut labore et dolore magna al"],
 	_BUILDING_STONE_QUARRY.cost.or = 22,
 	_BUILDING_STONE_QUARRY.cost.wood = 30,
 		
@@ -399,6 +420,8 @@ function generateMap(){
 	for(var i =0; i< players.length; i++){
 		setRandomStartPoint(i);
 	}
+	
+	
 
 	gameLoop();
 }
@@ -680,23 +703,36 @@ function updateBuildWidget(){
 	var startX = 4;
 	var startXdescription = 0.5;
 	
+	var m_canvas = document.createElement('canvas');
+			m_canvas.width = viewportTileSize * 5;
+			m_canvas.height = viewportTileSize * 1;
+			
+			var m_context = m_canvas.getContext('2d');
+				m_context.drawImage(sprites_img, -10*viewportTileSize, -2*viewportTileSize);
+				
+			m_canvas = resize(m_canvas, zoomOffset);
+	
 	for(var i=0; i<buildingsList.length; i++){
 		
-		widgetBuildContext.fillText(buildingsObjectList[i].name, (startX-1)*zoom, 0.5*zoom);
+		// Name
+		widgetBuildContext.drawImage(m_canvas, (startX-2)*zoom, 0, 5*zoom, zoom);
+		widgetBuildContext.fillText(buildingsObjectList[i].name, (startX-1.2)*zoom, 0.7*zoom);
 		
-		widgetBuildContext.drawImage(sprites[buildingsList[i]], startX*zoom, 2*zoom, zoom, zoom);
+		// Big Icon
+		widgetBuildContext.drawImage(sprites[buildingsList[i]], (startX-0.5)*zoom, 1.2*zoom, zoom*2, zoom*2);
 		
-		widgetBuildContext.fillText("GOLD:" + buildingsObjectList[i].cost.or, (startX-1)*zoom, 3.5*zoom);
-		widgetBuildContext.fillText("WOOD:" + buildingsObjectList[i].cost.wood, (startX-1)*zoom, 4*zoom);
+		// Gold
+		widgetBuildContext.drawImage(sprites[_TILE_GOLD], 			(startX-1)*zoom, 3.2*zoom, zoom, zoom);
+		widgetBuildContext.fillText(buildingsObjectList[i].cost.or, (startX)*zoom, 3.8*zoom);
 		
-		//widgetBuildContext.fillText(buildingsObjectList[i].description, startXdescription*zoom, 7*zoom);
+		// Wood
+		widgetBuildContext.drawImage(sprites[_TILE_WOOD], 				(startX+1)*zoom, 3.2*zoom, zoom, zoom);
+		widgetBuildContext.fillText(buildingsObjectList[i].cost.wood, 	(startX+2)*zoom, 3.8*zoom);
 		
+		// Description
 		for (var j = 0; j < buildingsObjectList[i].description.length; j++) {				
-				widgetBuildContext.fillText(buildingsObjectList[i].description[j], startXdescription*zoom , 5*zoom + (j*(zoom*0.5)));		
-			};
-		
-		
-		
+			widgetBuildContext.fillText(buildingsObjectList[i].description[j], startXdescription*zoom , 5*zoom + (j*(zoom*0.5)));		
+		};
 		
 		startX += viewportRowsCols;
 		startXdescription += viewportRowsCols;
@@ -757,6 +793,7 @@ function drawBufferPanel(){
 		startline 		= zoom*viewportRowsCols+(45*zoomFontOffset);
 	
 	panelContext.clearRect(0, 0, panelCanvas.height, panelCanvas.width);
+	
 	panelContext.drawImage(sprites[_TILE_PANEL], 
 		0, // x
 		zoom*viewportRowsCols, // y
@@ -767,15 +804,33 @@ function drawBufferPanel(){
 	panelContext.font = pannelFontSize+'px silkscreennormal, cursive';
 	panelContext.fillStyle = 'black';
 	
-	panelContext.fillText("TILEMAP", labelMarginLeft, startline);
+	// Line 1
+	panelContext.drawImage(sprites[_TILE_GOLD], 0.5*zoom, 10*zoom, zoom, zoom);
+	panelContext.fillText(players[selectedPlayer].or, 1.5*zoom, 10.6*zoom);
+	
+	panelContext.drawImage(sprites[_TILE_WOOD], 3*zoom, 10*zoom, zoom, zoom);
+	panelContext.fillText(players[selectedPlayer].wood, 4*zoom, 10.6*zoom);
+	
+	panelContext.drawImage(sprites[_TILE_BRICK], 5.5*zoom, 10*zoom, zoom, zoom);
+	panelContext.fillText(players[selectedPlayer].brick, 6.5*zoom, 10.6*zoom);
+	
+	// Line 2
+	panelContext.drawImage(sprites[_TILE_WHEAT], 0.5*zoom, 11*zoom, zoom, zoom);
+	panelContext.fillText(players[selectedPlayer].wheat, 1.5*zoom, 11.6*zoom);
+	
+	// Line 3
+	panelContext.drawImage(sprites[_TILE_MOVES], 0.5*zoom, 12*zoom, zoom, zoom);
+	panelContext.fillText(players[selectedPlayer].currentmoves + "/" + players[selectedPlayer].moves, 1.5*zoom, 12.6*zoom);
+	
+	/*panelContext.fillText("TILEMAP", labelMarginLeft, startline);
 	panelContext.fillText(getTileName(viewportMap[_X][_Y].type), dataMarginLeft, startline);
-	startline += lineHeight;
+	startline += lineHeight;*/
 	
 	/*panelContext.fillText("Population", labelMarginLeft, startline);
 	panelContext.fillText(viewportMap[_X][_Y].population, dataMarginLeft, startline);
 	startline += lineHeight;*/
 	
-	panelContext.fillText("Life", labelMarginLeft, startline);
+	/*panelContext.fillText("Life", labelMarginLeft, startline);
 	panelContext.fillText(players[selectedPlayer].life, dataMarginLeft, startline);
 	startline += lineHeight;
 	
@@ -797,7 +852,7 @@ function drawBufferPanel(){
 	
 	panelContext.fillText("Gold", labelMarginLeft, startline);
 	panelContext.fillText(players[selectedPlayer].or, dataMarginLeft, startline);
-	startline += lineHeight;
+	startline += lineHeight;*/
 	
 	/*panelContext.fillText("Rock", labelMarginLeft, startline);
 	panelContext.fillText(players[selectedPlayer].rock, dataMarginLeft, startline);
@@ -1240,8 +1295,9 @@ function makePanel(x,y,w,h){
 		m_canvas.height = h;
 		
 	var m_context = m_canvas.getContext('2d');
+		m_context.drawImage(sprites_img, -x*viewportTileSize, -y*viewportTileSize);
 	
-	m_context.drawImage(sprites_img, -x*viewportTileSize, -y*viewportTileSize);
+	m_canvas = resize(m_canvas, zoomOffset);
 	
 	return m_canvas;
 }
