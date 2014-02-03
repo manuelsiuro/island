@@ -791,6 +791,15 @@ function drawBufferPanel(){
 		labelMarginLeft = 15*zoomFontOffset,
 		dataMarginLeft 	= 120*zoomFontOffset,
 		startline 		= zoom*viewportRowsCols+(45*zoomFontOffset);
+		
+	var m_canvas = document.createElement('canvas');
+		m_canvas.width = viewportTileSize * 3;
+		m_canvas.height = viewportTileSize * 1;
+		
+		var m_context = m_canvas.getContext('2d');
+			m_context.drawImage(sprites_img, -10*viewportTileSize, -3*viewportTileSize);
+			
+		m_canvas = resize(m_canvas, zoomOffset);
 	
 	panelContext.clearRect(0, 0, panelCanvas.height, panelCanvas.width);
 	
@@ -818,9 +827,15 @@ function drawBufferPanel(){
 	panelContext.drawImage(sprites[_TILE_WHEAT], 0.5*zoom, 11*zoom, zoom, zoom);
 	panelContext.fillText(players[selectedPlayer].wheat, 1.5*zoom, 11.6*zoom);
 	
+	//Life bar
+	panelContext.drawImage(m_canvas, 0.25*zoom, 0.25*zoom, 3*zoom, zoom);
+	
 	// Line 3
 	panelContext.drawImage(sprites[_TILE_MOVES], 0.5*zoom, 12*zoom, zoom, zoom);
 	panelContext.fillText(players[selectedPlayer].currentmoves + "/" + players[selectedPlayer].moves, 1.5*zoom, 12.6*zoom);
+	
+	// XP Bar
+	panelContext.drawImage(m_canvas, 5.75*zoom, 0.25*zoom, 3*zoom, zoom);
 	
 	/*panelContext.fillText("TILEMAP", labelMarginLeft, startline);
 	panelContext.fillText(getTileName(viewportMap[_X][_Y].type), dataMarginLeft, startline);
